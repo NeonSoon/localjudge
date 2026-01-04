@@ -3,6 +3,35 @@ import { createSubmission, getLanguages, getSubmission, type JudgeRequest, type 
 
 const SECRET_TOKEN_KEY = "localjudge.accessToken";
 
+function safePreview(text: string, limit: number) {
+  if (text.length <= limit) return text;
+  return text.slice(0, limit) + `\n...[truncated, total ${text.length} chars]`;
+}
+
+function logCaptureSummary(output: vscode.OutputChannel, editor: vscode.TextEditor, payload: JudgeRequest, previewChars: number) {
+  const doc = editor.document;
+
+  output.appendLine("=== LocalJudge Debug: Capture Summary ===");
+  output.appendLine(`workspaceFolder: ${vscode.workspace.getWorkspaceFolder(doc.uri)?.uri.fsPath ?? "(none)"}`);
+  output.appendLine(`fileName: ${doc.fileName}`);
+  output.appendLine(`uri: ${doc.uri.toString(true)}`);
+  output.appendLine(`languageId(VSCode): ${doc.languageId}`);
+  output.appendLine(`lineCount: ${doc.lineCount}`);
+  output.appendLine(`eol: ${doc.eol === vscode.EndOfLine.CRLF ? "CRLF" : "LF"}`);
+  output.appendLine(`isDirty(unsaved changes): ${doc.isDirty}`);
+  output.appendLine("");
+
+  output.appendLine("--- Payload (without source_code preview) ---");
+  output.appendLine(`language_id: ${payload.language_id}`);
+  output.appendLine(`stdin length: ${(payload.stdin ?? "").length}`);
+  output.appendLine(`expected_output type: ${typeof payload.expected_output}`);
+  output.appendLine("");
+
+  output.appendLine("--- source_code preview ---");
+  output.appendLine(safePreview(payload.source_code, previewChars));
+  output.appendLine("=== End Debug ===\n");
+}
+
 function cfg() {
   const c = vscode.workspace.getConfiguration("localjudge");
   return {
@@ -10,6 +39,8 @@ function cfg() {
     wait: c.get<boolean>("wait", true),
     pollIntervalMs: c.get<number>("pollIntervalMs", 1000),
     pollTimeoutMs: c.get<number>("pollTimeoutMs", 30000),
+    dryRun: c.get<boolean>("dryRun", false),
+    previewChars: c.get<number>("previewChars", 800),
   };
 }
 
@@ -101,7 +132,7 @@ export function activate(context: vscode.ExtensionContext) {
         return;
       }
 
-      const { baseUrl, wait, pollIntervalMs, pollTimeoutMs } = cfg();
+      const { baseUrl, wait, pollIntervalMs, pollTimeoutMs, dryRun, previewChars } = cfg();
       const token = await getToken(context);
 
       const stdin = await vscode.window.showInputBox({
@@ -122,6 +153,14 @@ export function activate(context: vscode.ExtensionContext) {
       output.appendLine(`POST ${baseUrl}/code-judge/judge?wait=${wait ? "true" : "false"}`);
       output.appendLine(`file=${editor.document.fileName}`);
       output.appendLine(`language_id=${payload.language_id}\n`);
+      logCaptureSummary(output, editor, payload, previewChars);
+
+      if (dryRun) {
+        output.appendLine("DRY RUN is enabled. No network request will be sent.");
+        output.appendLine(`Would call: POST ${baseUrl}/code-judge/judge?wait=${wait ? "true" : "false"}`);
+        vscode.window.showInformationMessage("LocalJudge dry-run: payload printed to Output.");
+        return;
+      }
 
       try {
         if (wait) {
@@ -163,7 +202,13 @@ export function activate(context: vscode.ExtensionContext) {
         );
       } catch (e: any) {
         output.appendLine("=== LocalJudge Error ===");
-        output.appendLine(String(e?.message ?? e));
+        output.appendLine(String(e?.stack ?? e));
+
+        if (e?.cause) {
+          output.appendLine("--- cause ---");
+          output.appendLine(String(e.cause?.stack ?? e.cause));
+        }
+
         vscode.window.showErrorMessage("LocalJudge run failed. See Output: LocalJudge");
       }
     })

@@ -43,6 +43,16 @@
           "type": "number",
           "default": 30000,
           "description": "Polling timeout when wait=false"
+        },
+        "localjudge.dryRun": {
+          "type": "boolean",
+          "default": false,
+          "description": "If true, do not call backend. Only print what would be sent."
+        },
+        "localjudge.previewChars": {
+          "type": "number",
+          "default": 800,
+          "description": "How many characters of source_code to preview in Output."
         }
       }
     }
