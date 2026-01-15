@@ -1,7 +1,7 @@
 {
-  "name": "localjudge",
-  "displayName": "localjudge",
-  "description": "To judge code without browser",
+  "name": "localjudge-ui",
+  "displayName": "localjudge-ui",
+  "description": "",
   "version": "0.0.1",
   "engines": {
     "vscode": "^1.107.0"
@@ -10,52 +10,16 @@
     "Other"
   ],
   "activationEvents": [
-    "onCommand:localjudge.login",
-    "onCommand:localjudge.run",
-    "onCommand:localjudge.refreshLanguages"
+    "onCommand:localjudge-ui.openUI"
   ],
   "main": "./out/extension.js",
   "contributes": {
     "commands": [
-      { "command": "localjudge.login", "title": "LocalJudge: Login (Set Token)" },
-      { "command": "localjudge.run", "title": "LocalJudge: Run (Judge)" },
-      { "command": "localjudge.refreshLanguages", "title": "LocalJudge: Refresh Languages" }
-    ],
-    "configuration": {
-      "title": "LocalJudge",
-      "properties": {
-        "localjudge.baseUrl": {
-          "type": "string",
-          "default": "http://localhost:3000",
-          "description": "Backend API base URL"
-        },
-        "localjudge.wait": {
-          "type": "boolean",
-          "default": true,
-          "description": "Use wait=true for /code-judge/judge"
-        },
-        "localjudge.pollIntervalMs": {
-          "type": "number",
-          "default": 1000,
-          "description": "Polling interval when wait=false"
-        },
-        "localjudge.pollTimeoutMs": {
-          "type": "number",
-          "default": 30000,
-          "description": "Polling timeout when wait=false"
-        },
-        "localjudge.dryRun": {
-          "type": "boolean",
-          "default": false,
-          "description": "If true, do not call backend. Only print what would be sent."
-        },
-        "localjudge.previewChars": {
-          "type": "number",
-          "default": 800,
-          "description": "How many characters of source_code to preview in Output."
-        }
+      {
+        "command": "localjudge-ui.openUI",
+        "title": "LocalJudge: Open UI"
       }
-    }
+    ]
   },
   "scripts": {
     "vscode:prepublish": "npm run compile",

@@ -1,6 +1,6 @@
-# localjudge README
+# localjudge-ui README
 
-This is the README for your extension "localjudge". After writing up a brief description, we recommend including the following sections.
+This is the README for your extension "localjudge-ui". After writing up a brief description, we recommend including the following sections.
 
 ## Features
 
