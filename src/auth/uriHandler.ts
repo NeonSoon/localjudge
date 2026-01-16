@@ -1,6 +1,7 @@
 import * as vscode from "vscode";
-import { saveToken } from "./tokenStore";
+import { setToken } from "./tokenStore";
 import type { LocalJudgePanel } from "../ui/panel";
+import type { ToWebview } from "../ui/messages";
 
 export function registerAuthCallback(
   context: vscode.ExtensionContext,
@@ -15,14 +16,19 @@ export function registerAuthCallback(
 
       const panel = getPanel();
 
+      const message: ToWebview =
+        token
+          ? { type: "loginResult", ok: true }
+          : { type: "loginResult", ok: false };
+
       if (token) {
-        await saveToken(context, token);
-        panel?.postMessage({ type: "loginResult", ok: true });
+        await setToken(context, token);
         vscode.window.showInformationMessage("Login success! Token received.");
       } else {
-        panel?.postMessage({ type: "loginResult", ok: false });
         vscode.window.showErrorMessage("Callback received, but no token.");
       }
+
+      panel?.postMessage(message);
     },
   });
 }

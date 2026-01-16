@@ -3,7 +3,7 @@ import { getHtml } from "./html";
 import type { FromWebview, ToWebview } from "./messages";
 
 export class LocalJudgePanel {
-  private static current: LocalJudgePanel | undefined;
+  private static currentPanel: LocalJudgePanel | undefined;
   private panel: vscode.WebviewPanel;
 
   private constructor(panel: vscode.WebviewPanel) {
@@ -12,9 +12,9 @@ export class LocalJudgePanel {
   }
 
   static createOrShow() {
-    if (LocalJudgePanel.current) {
-      LocalJudgePanel.current.panel.reveal(vscode.ViewColumn.One);
-      return LocalJudgePanel.current;
+    if (LocalJudgePanel.currentPanel) {
+      LocalJudgePanel.currentPanel.panel.reveal(vscode.ViewColumn.One);
+      return LocalJudgePanel.currentPanel;
     }
 
     const panel = vscode.window.createWebviewPanel(
@@ -24,13 +24,13 @@ export class LocalJudgePanel {
       { enableScripts: true }
     );
 
-    LocalJudgePanel.current = new LocalJudgePanel(panel);
+    LocalJudgePanel.currentPanel = new LocalJudgePanel(panel);
 
     panel.onDidDispose(() => {
-      LocalJudgePanel.current = undefined;
+      LocalJudgePanel.currentPanel = undefined;
     });
 
-    return LocalJudgePanel.current;
+    return LocalJudgePanel.currentPanel;
   }
 
   onMessage(handler: (msg: FromWebview) => void) {
@@ -39,5 +39,9 @@ export class LocalJudgePanel {
 
   postMessage(msg: ToWebview) {
     return this.panel.webview.postMessage(msg);
+  }
+
+  static get current() {
+    return this.currentPanel;
   }
 }

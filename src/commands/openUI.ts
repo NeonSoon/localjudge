@@ -1,6 +1,7 @@
 import * as vscode from "vscode";
 import { LocalJudgePanel } from "../ui/panel";
 import type { FromWebview } from "../ui/messages";
+import { openLoginPage } from "../auth/loginFlow";
 
 export function registerOpenUI(context: vscode.ExtensionContext) {
   return vscode.commands.registerCommand("localjudge-ui.openUI", async () => {
@@ -8,16 +9,11 @@ export function registerOpenUI(context: vscode.ExtensionContext) {
 
     panel.onMessage(async (msg: FromWebview) => {
       if (msg.type === "start") {
-        vscode.window.showInformationMessage("Start clicked!");
+        await vscode.commands.executeCommand("localjudge.run");
       }
 
       if (msg.type === "login") {
-        const extID = context.extension.id;
-        const callbackuri = `vscode://${extID}/auth-callback`;
-        const loginurl =
-          `https://pslab.squidspirit.com/sign-in?redirect=${encodeURIComponent(callbackuri)}`;
-
-        await vscode.env.openExternal(vscode.Uri.parse(loginurl));
+        await openLoginPage(context);
       }
     });
   });
