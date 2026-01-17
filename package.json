@@ -1,6 +1,6 @@
 {
-  "name": "localjudge-ui",
-  "displayName": "localjudge-ui",
+  "name": "localjudge",
+  "displayName": "localjudge",
   "description": "",
   "version": "0.0.1",
   "engines": {
@@ -18,17 +18,29 @@
   "main": "./out/extension.js",
   "contributes": {
     "commands": [
-      { "command": "localjudge.login", "title": "LocalJudge: Login (Set Token)" },
-      { "command": "localjudge.run", "title": "LocalJudge: Run (Judge)" },
-      { "command": "localjudge.refreshLanguages", "title": "LocalJudge: Refresh Languages" },
-      { "command": "localjudge-ui.openUI", "title": "LocalJudge: Open UI" }
+      {
+        "command": "localjudge.login",
+        "title": "LocalJudge: Login"
+      },
+      {
+        "command": "localjudge.run",
+        "title": "LocalJudge: Run (Judge)"
+      },
+      {
+        "command": "localjudge.refreshLanguages",
+        "title": "LocalJudge: Refresh Languages"
+      },
+      {
+        "command": "localjudge-ui.openUI",
+        "title": "LocalJudge: Open UI"
+      }
     ],
     "configuration": {
       "title": "LocalJudge",
       "properties": {
         "localjudge.baseUrl": {
           "type": "string",
-          "default": "http://localhost:3000",
+          "default": "https://pslab.squidspirit.com",
           "description": "Backend API base URL"
         },
         "localjudge.wait": {
@@ -78,13 +90,18 @@
     "test": "vscode-test"
   },
   "devDependencies": {
-    "@types/vscode": "^1.107.0",
     "@types/mocha": "^10.0.10",
     "@types/node": "22.x",
-    "typescript-eslint": "^8.48.1",
+    "@types/vscode": "^1.107.0",
+    "@vscode/test-cli": "^0.0.12",
+    "@vscode/test-electron": "^2.5.2",
     "eslint": "^9.39.1",
     "typescript": "^5.9.3",
-    "@vscode/test-cli": "^0.0.12",
-    "@vscode/test-electron": "^2.5.2"
+    "typescript-eslint": "^8.48.1"
+  },
+  "dependencies": {
+    "axios": "^1.13.2",
+    "axios-cookiejar-support": "^6.0.5",
+    "tough-cookie": "^6.0.0"
   }
 }
