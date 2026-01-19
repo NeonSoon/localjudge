@@ -1,6 +1,6 @@
 import * as vscode from "vscode";
 import { loginWithUsernamePassword } from "../auth/loginFlow";
-import { setToken } from "../auth/tokenStore";
+import { setAuth } from "../auth/tokenStore";
 import { CONFIG_SECTION } from "../config/config";
 
 function maskToken(token: string, head = 10, tail = 6) {
@@ -18,10 +18,17 @@ function getOutputChannel() {
   return outputChannel;
 }
 
+function normalizeBaseUrl(raw: string) {
+  let u = (raw || "").trim().replace(/\/+$/, "");
+  if (u.toLowerCase().endsWith("/api")) u = u.slice(0, -4);
+  return u;
+}
+
 export function registerLoginCommand(context: vscode.ExtensionContext) {
   return vscode.commands.registerCommand("localjudge.login", async () => {
     const cfg = vscode.workspace.getConfiguration(CONFIG_SECTION);
-    const baseUrl = (cfg.get<string>("baseUrl") || "").trim();
+    const rawBaseUrl = (cfg.get<string>("baseUrl") || "").trim();
+    const baseUrl = normalizeBaseUrl(rawBaseUrl);
 
     if (!baseUrl) {
       vscode.window.showErrorMessage(`Missing config: ${CONFIG_SECTION}.baseUrl`);
@@ -43,49 +50,58 @@ export function registerLoginCommand(context: vscode.ExtensionContext) {
 
     const out = getOutputChannel();
     out.appendLine("=== Login Attempt ===");
-    out.appendLine(`[config] baseUrl=${baseUrl}`);
+    out.appendLine(`[config] baseUrl(raw)=${rawBaseUrl}`);
+    out.appendLine(`[config] baseUrl(norm)=${baseUrl}`);
     out.appendLine(`[input] username=${username.trim()}`);
     out.show(true);
 
     try {
-      const result = await vscode.window.withProgress(
+      const result = await vscode.window.withProgress<{
+        token: string;
+        tokenId?: string;
+        user: any;
+      }>(
         {
           location: vscode.ProgressLocation.Notification,
-          title: "LocalJudge: Logging in…",
+          title: "LocalJudge: Logging in...",
           cancellable: false,
         },
         async (progress) => {
-          progress.report({ message: "Signing in (/user/signin) …" });
+          progress.report({ message: "Signing in (/user/signin)..." });
 
-          const { token, user } = await loginWithUsernamePassword({
+          const { token, tokenId, user } = await loginWithUsernamePassword({
+            context,
             baseUrl,
             username: username.trim(),
             password,
             purpose: "localjudge",
           });
 
-          progress.report({ message: "Saving token …" });
-          await setToken(context, token);
+          out.appendLine("[debug] loginFlow returned:");
+          out.appendLine(`  tokenLen=${token.length}`);
+          out.appendLine(`  tokenId=${tokenId ?? "(none)"}`);
 
-          return { token, user };
+          progress.report({ message: "Saving token..." });
+          await setAuth(context, { token, tokenId });
+
+          return { token, tokenId, user };
         }
       );
 
-      const { token, user } = result;
+      const { token, tokenId, user } = result;
 
-      // 直觀摘要（不洩漏 token）
       const summaryLines = [
         `Username: ${user.username}`,
         `Role: ${user.role_name ?? "(unknown)"}`,
         `Auth: ${user.auth_type ?? "(unknown)"}`,
         `User ID: ${user.id ?? "(unknown)"}`,
+        `Token ID: ${tokenId ?? "(none)"}`,
         `Token: ${token.length} chars (${maskToken(token)})`,
       ];
 
       out.appendLine("=== Login Success ===");
       for (const line of summaryLines) out.appendLine(line);
 
-      // 提供按鈕操作：Copy token / Open Output / Close
       const action = await vscode.window.showInformationMessage(
         `Login successful: ${user.username}`,
         { modal: true, detail: summaryLines.join("\n") },
@@ -101,7 +117,6 @@ export function registerLoginCommand(context: vscode.ExtensionContext) {
         out.show(true);
       }
 
-      // 狀態列訊息（短暫）
       vscode.window.setStatusBarMessage(
         `LocalJudge: logged in as ${user.username} (${user.role_name})`,
         8000
@@ -118,10 +133,7 @@ export function registerLoginCommand(context: vscode.ExtensionContext) {
       out.appendLine(`[error] message=${msg}`);
       if (headers) out.appendLine(`[error] headers=${JSON.stringify(headers)}`);
 
-      vscode.window.showErrorMessage(
-        `Login failed${status ? ` (${status})` : ""}: ${msg}`
-      );
-
+      vscode.window.showErrorMessage(`Login failed${status ? ` (${status})` : ""}: ${msg}`);
       console.error("[login] status=", status, "headers=", headers, "data=", data, "err=", e);
     }
   });

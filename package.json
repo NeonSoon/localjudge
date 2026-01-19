@@ -13,7 +13,8 @@
     "onCommand:localjudge-ui.openUI",
     "onCommand:localjudge.login",
     "onCommand:localjudge.run",
-    "onCommand:localjudge.refreshLanguages"
+    "onCommand:localjudge.refreshLanguages",
+    "onCommand:localjudge.showToken"
   ],
   "main": "./out/extension.js",
   "contributes": {
@@ -29,6 +30,10 @@
       {
         "command": "localjudge.refreshLanguages",
         "title": "LocalJudge: Refresh Languages"
+      },
+      {
+        "command": "localjudge.showToken",
+        "title": "LocalJudge: Show Token"
       },
       {
         "command": "localjudge-ui.openUI",
