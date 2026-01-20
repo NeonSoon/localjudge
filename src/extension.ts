@@ -41,8 +41,9 @@ export function activate(context: vscode.ExtensionContext) {
     const uriHandler = vscode.window.registerUriHandler({
         async handleUri(uri: vscode.Uri) {
             // 只接受 auth-callback（避免別的 URI 亂進來）
-            if (uri.path !== "/auth-callback") return;
-
+            if (uri.path !== "/auth-callback"){
+                return;
+            }
             const params = new URLSearchParams(uri.query);
             const token = params.get("token");
 
