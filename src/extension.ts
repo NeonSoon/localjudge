@@ -1,4 +1,8 @@
 import * as vscode from "vscode";
+import { loginWithUsernamePassword } from "./auth/loginFlow";
+import { setAuth } from "./auth/tokenStore";
+import { CONFIG_SECTION } from "./config/config";
+
 
 let currentPanel: vscode.WebviewPanel | undefined;
 // VS Code 在 extension「被啟動」時，會自動呼叫 activate(main)
@@ -41,9 +45,7 @@ export function activate(context: vscode.ExtensionContext) {
     const uriHandler = vscode.window.registerUriHandler({
         async handleUri(uri: vscode.Uri) {
             // 只接受 auth-callback（避免別的 URI 亂進來）
-            if (uri.path !== "/auth-callback"){
-                return;
-            }
+            if (uri.path !== "/auth-callback") return;
             const params = new URLSearchParams(uri.query);
             const token = params.get("token");
 
