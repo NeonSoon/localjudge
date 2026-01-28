@@ -1,7 +1,7 @@
 // src/ui/panel.ts
 import * as vscode from "vscode";
 import { getMainHtml } from "./html";
-import { handleLogin } from "../auth/loginHandler";
+import { handleOAuthLogin } from "../auth/oauthLoginHandler";
 
 let currentPanel: vscode.WebviewPanel | undefined;
 
@@ -33,7 +33,7 @@ export function openMainPanel(context: vscode.ExtensionContext) {
       }
 
       if (msg?.type === "login") {
-        await handleLogin(context, panel);
+        await handleOAuthLogin(context);
         return;
       }
 

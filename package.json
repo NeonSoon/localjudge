@@ -19,7 +19,17 @@
         "command": "localjudge-ui.openUI",
         "title": "LocalJudge: Open UI"
       }
-    ]
+    ],
+    "configuration": {
+      "title": "LocalJudge",
+      "properties": {
+        "localjudge.baseUrl": {
+          "type": "string",
+        "default": "",
+        "description": "Base URL of LocalJudge server (e.g. https://pslab.squidspirit.com)"
+        }
+      }
+    }
   },
   "scripts": {
     "vscode:prepublish": "npm run compile",

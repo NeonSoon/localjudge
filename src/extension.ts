@@ -1,5 +1,6 @@
 import * as vscode from "vscode";
 import { openMainPanel } from "./ui/panel";
+import { getCurrentPanel } from "./ui/panel";
 
 // VS Code 在 extension「被啟動」時，會自動呼叫 activate(main)
 // context 是 VS Code 借你的「管理工具箱」
@@ -13,8 +14,28 @@ export function activate(context: vscode.ExtensionContext) {
         }
     );
 
+    const uriHandler = vscode.window.registerUriHandler({
+      async handleUri(uri: vscode.Uri) {
+        if (uri.path !== "/auth-callback") return;
+
+        const params = new URLSearchParams(uri.query);
+        const token = params.get("token");
+
+        const panel = getCurrentPanel();
+
+        if (token) {
+          await context.secrets.store("localjudge.token", token);
+          vscode.window.showInformationMessage("Login success! Token received.");
+          panel?.webview.postMessage({ type: "loginResult", ok: true });
+        } else {
+          vscode.window.showErrorMessage("Callback received, but no token.");
+          panel?.webview.postMessage({ type: "loginResult", ok: false });
+        }
+      }
+    });
+
   // 註冊清理 reload 就一起清掉
-    context.subscriptions.push(openUI);
+    context.subscriptions.push(openUI, uriHandler);
 }
 
 export function deactivate() {}
