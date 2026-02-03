@@ -24,6 +24,10 @@
         "title": "LocalJudge: Login"
       },
       {
+        "command": "localjudge.logout",
+        "title": "LocalJudge: Logout"
+      },
+      {
         "command": "localjudge.run",
         "title": "LocalJudge: Run (Judge)"
       },

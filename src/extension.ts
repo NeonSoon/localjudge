@@ -6,6 +6,7 @@ import { registerLoginCommand } from "./commands/loginCommand";
 import { registerRefreshLanguagesCommand } from "./commands/refreshLanguagesCommand";
 import { registerRunCommand } from "./commands/runCommand";
 import { registerShowTokenCommand } from "./commands/showtoken";
+import { registerLogoutCommand } from "./commands/logoutCommand";
 
 export function activate(context: vscode.ExtensionContext) {
   const output = vscode.window.createOutputChannel("LocalJudge");
@@ -16,7 +17,8 @@ export function activate(context: vscode.ExtensionContext) {
   const run = registerRunCommand(context, output);
   const uriHandler = registerAuthCallback(context, () => LocalJudgePanel.current);
   const showToken = registerShowTokenCommand(context, output);
-  context.subscriptions.push(openUI, login, refresh, run, showToken, uriHandler);
+  const logout = registerLogoutCommand(context);
+  context.subscriptions.push(openUI, login, refresh, run, showToken, uriHandler, logout);
 }
 
 export function deactivate() {}
