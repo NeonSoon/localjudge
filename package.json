@@ -40,6 +40,22 @@
         "title": "LocalJudge: Show Token"
       },
       {
+        "command": "localjudge.getProjects",
+        "title": "LocalJudge: Get Projects"
+      },
+      {
+        "command": "localjudge.getObservations",
+        "title": "LocalJudge: Get Observations"
+      },
+      {
+        "command": "localjudge.getBlocks",
+        "title": "LocalJudge: Get Blocks"
+      },
+      {
+        "command": "localjudge.getQuizzes",
+        "title": "LocalJudge: Get Quizzes"
+      },
+      {
         "command": "localjudge-ui.openUI",
         "title": "LocalJudge: Open UI"
       }
