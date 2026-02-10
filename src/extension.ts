@@ -27,12 +27,14 @@ export function activate(context: vscode.ExtensionContext) {
           await context.secrets.store("localjudge.token", token);
           vscode.window.showInformationMessage("Login success! Token received.");
           panel?.webview.postMessage({ type: "loginResult", ok: true });
-        } else {
+        }
+        else {
           vscode.window.showErrorMessage("Callback received, but no token.");
           panel?.webview.postMessage({ type: "loginResult", ok: false });
         }
       }
     });
+
 
   // 註冊清理 reload 就一起清掉
     context.subscriptions.push(openUI, uriHandler);
