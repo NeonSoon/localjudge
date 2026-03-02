@@ -1,6 +1,6 @@
 // src/ui/panel.ts
 import * as vscode from "vscode";
-import { getMainHtml } from "./html";
+import { getHtml } from "./html";
 import { handleOAuthLogin } from "../auth/oauthLoginHandler";
 
 let currentPanel: vscode.WebviewPanel | undefined;
@@ -22,7 +22,7 @@ export function openMainPanel(context: vscode.ExtensionContext) {
   currentPanel = panel;
 
   // UI 內容
-  panel.webview.html = getMainHtml();
+  panel.webview.html = getHtml();
 
   // 接收 Webview 傳回的訊息
   panel.webview.onDidReceiveMessage(async (msg) => {

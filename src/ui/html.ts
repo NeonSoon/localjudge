@@ -1,98 +1,182 @@
-// 做出 html 該長怎樣，包成字串丟回去
-export function getMainHtml() {
-    return `<!doctype html>
+export function getHtml() {
+    return /* html */ `<!doctype html>
 <html>
 <head>
     <meta charset="utf-8" />
-
-    <!-- 根據裝置顯示寬度 -->
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-
-    <style>
-        html, body {
-            height: 100%;
-            margin: 0;
-        }
-
+       <style>
+        html, body { height: 100%; margin: 0; }
         body {
-            position: relative;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: #1e1e1e;
             font-family: -apple-system, BlinkMacSystemFont, Segoe UI, sans-serif;
-            padding: 40px;          /* 內容跟邊緣保持距離 */
-            display: flex;          /* 排版模式 */
-            justify-content: center;/* 水平置中 */
-            align-items: center;    /* 垂直置中 */
         }
-
-        .container {
-            text-align: center;     /* 文字置中 */
-            max-width: 420px;
+        .hidden { display: none !important; }
+        .card {
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
         }
-
-        p {
-            color: #666;
-            margin: 10px 0 24px;
-        }
-
-        button {
-            padding: 10px 20px;
-            border-radius: 12px;    /* 圓角 */
+        h1 { margin: 0 0 12px; }
+        p { color: #666; margin: 0 0 16px; }
+        input {
+            width: 100%;
+            padding: 10px 12px;
+            margin: 8px 0;
             border: 1px solid #ccc;
-            background: #fff;
+            border-radius: 10px;
             font-size: 14px;
-            cursor: pointer;        /* 滑鼠碰到要變成啥 */
+            box-sizing: border-box;
         }
-
-        button:hover {
-            background: #f5f5f5;    /* 碰到按鈕變色 */
-        }
-
-        .login-btn {
-            position: absolute;     /* 脫離原本排版 */
-            top: 16px;
-            right: 16px;
-            padding: 8px 14px;
+        button {
+            padding: 10px 14px;
             border-radius: 10px;
             border: 1px solid #ccc;
             background: #fff;
             cursor: pointer;
+            font-size: 14px;
         }
-    </style>
+        button:hover { background: #f5f5f5; }
+        .row { display: flex; gap: 10px; margin-top: 12px; }
+        .row button { flex: 1; }
+        .mutedBtn { background: #f7f7f7; }
+        hr { border: none; border-top: 1px solid #eee; margin: 16px 0; }
+
+        .fullBtn {
+            width: 100%;
+            margin-top: 12px;
+        }
+
+        .primaryBtn {
+            background: #f0f0f0;
+            color: black;
+            border: none;
+        }
+
+        .primaryBtn:hover {
+            background: #e5e5e5;
+        }
+
+        .portalBtn {
+            background: #95bffe;
+            color: white;
+            border: none;
+        }
+
+        .portalBtn:hover {
+            background: #668abd;
+        }
+
+        .divider {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin: 20px 0;
+            color: white;
+        }
+
+        .divider span {
+            color: white;
+            font-size: 14px;
+        }
+
+        .divider::before,
+        .divider::after {
+            content: "";
+            flex: 1;
+            height: 1px;
+            background: rgba(255,255,255,0.2);
+        }
+        #mainView, #loginView {
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        #mainView h1 {
+            font-size: 36px;         
+            font-weight: 600;
+            margin: 0;
+        }
+        #mainView p {
+            font-size: 16px;
+            color: #9ca3af;          /* 柔和灰 */
+            margin: 0;
+        }
+        #mainView>div{ max-width: 400px; }
+
+        .centerLoginBtn {
+            width: 100%;
+            max-width: 320px;
+            padding: 14px 0;
+            font-size: 16px;
+            border-radius: 12px;
+            border: none;
+            background: #3b7ddd;
+            color: white;
+            cursor: pointer;
+        }
+
+        .centerLoginBtn:hover {
+            background: #2f6ec5;
+            transform: translateY(-1px);    
+        }
+
+        </style>
 </head>
 
 <body>
-    <button id="login" class="login-btn">Login</button>
+    <!-- 主畫面 -->
+    <div id="mainView">
+            <h1>LocalJudge</h1>
+            <p>Welcome. Start coding directly in VS Code.</p>
+            <button id="goLogin">Login</button>
+    </div>
 
-    <div class="container">
-        <h1>LocalJudge</h1>   <!-- 標題 -->
-        <p id="hint">Welcome. Start coding directly in VS Code.</p>
-        <button id="start">Start</button> <!-- 按鈕 -->
+    <!-- 登入畫面 -->
+    <div id="loginView" class="card hidden">
+
+        <!-- 帳密登入 -->
+        <input id="username" placeholder="username" />
+        <input id="password" type="password" placeholder="password" />
+
+        <button id="manualLoginBtn" class="fullBtn primaryBtn">
+            Sign in
+        </button>
+
+        <!-- 分隔 -->
+        <div class="divider">
+            <span>or</span>
+        </div>
+
+        <!-- Portal 登入 -->
+        <button id="portalLoginBtn" class="fullBtn portalBtn">
+            Sign in with Portal
+        </button>
     </div>
 
     <script>
-        const vscode = acquireVsCodeApi(); // 取得 vscode 提供的 Webview API
 
-        document.getElementById("start").addEventListener("click", () => {
-            vscode.postMessage({ type: "start" });
-        });
+        const vscode = acquireVsCodeApi();
 
-        document.getElementById("login").addEventListener("click", () => {
-            vscode.postMessage({ type: "login" });
-        });
+        window.addEventListener("DOMContentLoaded", () => {
 
-        window.addEventListener("message", (event) => {
-            const msg = event.data;
-            if (msg.type === "loginResult") {
-                if (msg.ok) {
-                    document.getElementById("login").textContent = "Logged in";
-                    if (msg.username) {
-                        document.getElementById("hint").textContent =
-                            "Hi, " + msg.username + "!";
-                    }
-                } else {
-                    alert("Login failed");
-                }
+            const mainView = document.getElementById("mainView");
+            const loginView = document.getElementById("loginView");
+            const goLoginBtn = document.getElementById("goLogin");
+
+            if (goLoginBtn) {
+            goLoginBtn.addEventListener("click", () => {
+                mainView.classList.add("hidden");
+                loginView.classList.remove("hidden");
+            });
             }
+
         });
+
     </script>
 </body>
 </html>`;
