@@ -10,11 +10,6 @@
     "Other"
   ],
   "activationEvents": [
-    "onCommand:localjudge-ui.openUI",
-    "onCommand:localjudge.login",
-    "onCommand:localjudge.run",
-    "onCommand:localjudge.refreshLanguages",
-    "onCommand:localjudge.showToken"
   ],
   "main": "./out/extension.js",
   "contributes": {
@@ -46,6 +41,18 @@
       {
         "command": "localjudge.getQuizzes",
         "title": "LocalJudge: Get Quizzes"
+      },
+      {
+        "command": "localjudge.submission",
+        "title": "LocalJudge: submission"
+      },
+      {
+        "command": "localjudge.codeJudge",
+        "title": "LocalJudge: Code Judge"
+      },
+      {
+        "command": "localjudge.getSubmissions",
+        "title": "LocalJudge: Get Submissions"
       },
       {
         "command": "localjudge-ui.openUI",

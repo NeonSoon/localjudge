@@ -79,7 +79,7 @@ export function registerGetBlocksCommand(context: vscode.ExtensionContext) {
 
     const allObservations: Observation[] = Object.values(obsMap).flat();
 
-    // 2儭 ??observation name 霈蝙?刻
+    // observation name 
     const picked = await vscode.window.showQuickPick(
       allObservations.map((o) => ({
         label: o.name,
@@ -97,7 +97,7 @@ export function registerGetBlocksCommand(context: vscode.ExtensionContext) {
     const observationId = picked.description!;
     const observationName = picked.label;
 
-    // 3儭 ?澆 observation-block API
+    // observation-block API
     try {
       const { client, jar } = await getSession(baseUrl);
       const origin = new URL(baseUrl).origin + "/";
@@ -135,5 +135,3 @@ export function registerGetBlocksCommand(context: vscode.ExtensionContext) {
     }
   });
 }
-
-

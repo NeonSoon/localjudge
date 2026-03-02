@@ -9,6 +9,9 @@ import { registerGetProjectsCommand } from "./project/getProjects";
 import { registerGetObservationsCommand } from "./project/getObservations";
 import { registerGetBlocksCommand } from "./project/getBlocks";
 import { registerGetQuizzesCommand } from "./project/getQuizzes";
+import { registerCreateSubmissionCommand } from "./submission/submission";
+import { registerCodeJudgeCommand } from "./submission/codejudge";
+import { registerGetSubmissionsCommand } from "./submission/getSubmissions";
 
 export function activate(context: vscode.ExtensionContext) {
   const output = vscode.window.createOutputChannel("LocalJudge");
@@ -22,7 +25,23 @@ export function activate(context: vscode.ExtensionContext) {
   const getObservations = registerGetObservationsCommand(context);
   const getBlocks = registerGetBlocksCommand(context);
   const getQuizzes = registerGetQuizzesCommand(context);
-  context.subscriptions.push(openUI, login, showToken, uriHandler, logout, getProjects, getObservations, getBlocks, getQuizzes );
+  const submission = registerCreateSubmissionCommand(context);
+  const codeJudge = registerCodeJudgeCommand(context);
+  const getSubmissions = registerGetSubmissionsCommand(context);
+  context.subscriptions.push(
+    openUI,
+    login,
+    showToken,
+    uriHandler,
+    logout,
+    getProjects,
+    getObservations,
+    getBlocks,
+    getQuizzes,
+    submission,
+    codeJudge,
+    getSubmissions
+  );
 }
 
 export function deactivate() {}
