@@ -1,19 +1,11 @@
-// src/ui/panel.ts
 import * as vscode from "vscode";
 import { getHtml } from "./html";
-// import { handleOAuthLogin } from "../auth/oauthLoginHandler";
 import { loginWithUsernamePassword } from "../auth/loginFlow";
 
-let currentPanel: vscode.WebviewPanel | undefined;
+let currentPanel: vscode.WebviewPanel | undefined;   // 現在開著的web
 
-/**
- * 開啟主介面 Webview
- * - 建 panel
- * - 塞 html
- * - 綁 UI -> extension 的 message handler
- */
 export function openMainPanel(context: vscode.ExtensionContext) {
-  const panel = vscode.window.createWebviewPanel(
+  const panel = vscode.window.createWebviewPanel(    // 在 vscode 裡面開一個視窗
     "localjudgeUI",           // Webview 的內部 ID（系統用）
     "LocalJudge",             // title
     vscode.ViewColumn.One,    // 開在主編輯區
@@ -21,8 +13,6 @@ export function openMainPanel(context: vscode.ExtensionContext) {
   );
 
   currentPanel = panel;
-
-  // UI 內容
   panel.webview.html = getHtml();
 
   // 接收 Webview 傳回的訊息
@@ -31,16 +21,9 @@ export function openMainPanel(context: vscode.ExtensionContext) {
 
       if (msg.type === "portalLogin") {
 
-        const extId = context.extension.id;
-
-        const callbackUri = `vscode://${extId}/auth-callback`;
-
-        const portalUrl =
-          "https://portal.ncu.edu.tw/oauth2/authorization";
-
-        await vscode.env.openExternal(
-          vscode.Uri.parse(portalUrl)
-        );
+        // 用系統預設瀏覽器打開網址
+        const portalUrl = "https://portal.ncu.edu.tw/oauth2/authorization";
+        await vscode.env.openExternal(vscode.Uri.parse(portalUrl));
 
         return;
       }
@@ -55,16 +38,16 @@ export function openMainPanel(context: vscode.ExtensionContext) {
             return;
           }
 
-          // 🔵 呼叫你 neon 的 loginFlow
+          // 呼叫 loginFlow
           const result = await loginWithUsernamePassword({
             context,
-            baseUrl: "https://pslab.squidspirit.com", // 先填固定值測試
+            baseUrl: "https://pslab.squidspirit.com", 
             username,
             password,
             purpose: "localjudge"
           });
 
-          // 🔵 存 token
+          // 存 token
           await context.secrets.store("localjudge.token", result.token);
 
           vscode.window.showInformationMessage(
@@ -78,12 +61,7 @@ export function openMainPanel(context: vscode.ExtensionContext) {
           });
 
         } catch (err: any) {
-
             console.error("LOGIN ERROR:", err);
-
-            const status = err?.response?.status;
-            const data = err?.response?.data;
-
             vscode.window.showErrorMessage("Login failed");
         }
 
@@ -92,19 +70,19 @@ export function openMainPanel(context: vscode.ExtensionContext) {
       if (msg.type === "logout") {
         await context.secrets.delete("localjudge.token");
         await context.secrets.delete("localjudge.user");
-
         panel.webview.postMessage({ type: "loggedOut" });
       }
 
-    } catch (e: any) {
-      // 這裡只做保底（大多數錯誤在 loginHandler 已經處理）
-      const errMsg = e?.message ?? String(e);
-      vscode.window.showErrorMessage(`UI error: ${errMsg}`);
+    } catch (e: unknown) {
+      // 如果 e 屬 error 用 message，否則直接轉字串
+      const errMsg = e instanceof Error ? e.message : String(e);    
+      console.error("PANEL ERROR:", e);
+      vscode.window.showErrorMessage(`Unexpected error: ${errMsg}`);
       currentPanel?.webview.postMessage({ type: "error", message: errMsg });
     }
   });
 
-  // 如果 panel 被關掉，把 currentPanel 清掉（避免之後 postMessage 發到舊 panel）
+  // 如果 panel 被關掉，把 currentPanel 清掉
   panel.onDidDispose(() => {
     if (currentPanel === panel) currentPanel = undefined;
   });
@@ -112,10 +90,6 @@ export function openMainPanel(context: vscode.ExtensionContext) {
   return panel;
 }
 
-/**
- * 你未來可能會需要：
- * 從 extension 其他地方拿到 panel（例如 socket 回傳結果要更新 UI）
- */
 export function getCurrentPanel() {
   return currentPanel;
 }
