@@ -1,183 +1,260 @@
-export function getHtml() {
-    return /* html */ `<!doctype html>
+export function getHtml(): string {
+    return `
+<!DOCTYPE html>
 <html>
 <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-       <style>
-        html, body { height: 100%; margin: 0; }
-        body {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            background: #1e1e1e;
-            font-family: -apple-system, BlinkMacSystemFont, Segoe UI, sans-serif;
-        }
-        .hidden { display: none !important; }
-        .card {
-            width: 100%;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }
-        h1 { margin: 0 0 12px; }
-        p { color: #666; margin: 0 0 16px; }
-        input {
-            width: 100%;
-            padding: 10px 12px;
-            margin: 8px 0;
-            border: 1px solid #ccc;
-            border-radius: 10px;
-            font-size: 14px;
-            box-sizing: border-box;
-        }
-        button {
-            padding: 10px 14px;
-            border-radius: 10px;
-            border: 1px solid #ccc;
-            background: #fff;
-            cursor: pointer;
-            font-size: 14px;
-        }
-        button:hover { background: #f5f5f5; }
-        .row { display: flex; gap: 10px; margin-top: 12px; }
-        .row button { flex: 1; }
-        .mutedBtn { background: #f7f7f7; }
-        hr { border: none; border-top: 1px solid #eee; margin: 16px 0; }
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-        .fullBtn {
-            width: 100%;
-            margin-top: 12px;
-        }
+<style>
+    html, body {
+        height: 100%;
+        margin: 0;
+    }
 
-        .primaryBtn {
-            background: #f0f0f0;
-            color: black;
-            border: none;
-        }
+    body {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        background: #1e1e1e;
+        font-family: -apple-system, BlinkMacSystemFont, Segoe UI, sans-serif;
+        padding: 24px;
+        box-sizing: border-box;
+        color: white;
+    }
 
-        .primaryBtn:hover {
-            background: #e5e5e5;
-        }
+    #mainView, #loginView {
+        width: 100%;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
 
-        .portalBtn {
-            background: #95bffe;
-            color: white;
-            border: none;
-        }
+    .mainBox {
+        width: 100%;
+        max-width: 420px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+        gap: 20px;
+    }
 
-        .portalBtn:hover {
-            background: #668abd;
-        }
+    .card {
+        width: 100%;
+        max-width: 520px;
+        padding: 28px;
+        border-radius: 16px;
+        border: 1px solid rgba(255,255,255,0.12);
+        background: rgba(17,17,17,0.95);
+        box-sizing: border-box;
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+    }
 
-        .divider {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            margin: 20px 0;
-            color: white;
-        }
+    input {
+        width: 100%;
+        padding: 12px 14px;
+        border-radius: 12px;
+        border: 1px solid #dcdcdc;
+        background: #ffffff;
+        color: #111;
+        font-size: 14px;
+        box-sizing: border-box;
+        outline: none;
+    }
 
-        .divider span {
-            color: white;
-            font-size: 14px;
-        }
+    input::placeholder {
+        color: #666;
+    }
 
-        .divider::before,
-        .divider::after {
-            content: "";
-            flex: 1;
-            height: 1px;
-            background: rgba(255,255,255,0.2);
-        }
-        #mainView, #loginView {
-            width: 100%;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }
-        #mainView h1 {
-            font-size: 36px;         
-            font-weight: 600;
-            margin: 0;
-        }
-        #mainView p {
-            font-size: 16px;
-            color: #9ca3af;          /* 柔和灰 */
-            margin: 0;
-        }
-        #mainView>div{ max-width: 400px; }
+    .fullBtn {
+        width: 100%;
+        padding: 14px 0;
+        border-radius: 12px;
+        border: none;
+        cursor: pointer;
+        font-size: 15px;
+        transition: 0.15s ease;
+    }
 
-        .centerLoginBtn {
-            width: 100%;
-            max-width: 320px;
-            padding: 14px 0;
-            font-size: 16px;
-            border-radius: 12px;
-            border: none;
-            background: #3b7ddd;
-            color: white;
-            cursor: pointer;
-        }
+    .homeLoginBtn {
+        background: #ffffff;
+        color: #111111;
+    }
+    .homeLoginBtn:hover { background: #c5c3c3; }
 
-        .centerLoginBtn:hover {
-            background: #2f6ec5;
-            transform: translateY(-1px);    
-        }
+    .manualBtn {
+        background: #dcdcdc;
+        color: #111111;
+    }
+    .manualBtn:hover { background: #a9a7a7; }
 
-        </style>
+    .portalBtn {
+        background: #8fb8ff;
+        color: #ffffff;
+    }
+    .portalBtn:hover { background: #718fcb; }
+
+    .divider {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin: 8px 0;
+        color: rgba(255,255,255,0.9);
+    }
+    .divider::before,
+    .divider::after {
+        content: "";
+        flex: 1;
+        height: 1px;
+        color: white;
+        background: rgba(255,255,255,0.22);
+    }
+    .divider span {
+        font-size: 13px;
+    }
+
+    .hidden {
+        display: none !important;
+    }
+
+    #mainView h1 {
+        font-size: 36px;
+        margin: 0;
+        font-weight: 650;
+    }
+    #mainView p {
+        margin: 0;
+        color: #9ca3af;
+        line-height: 1.4;
+    }
+
+    /* ===== 登入後全黑頁面（不動你原本顏色）===== */
+
+    #appView {
+        position: fixed;
+        inset: 0;
+        background: #1e1e1e;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .topBar {
+        display: flex;
+        justify-content: flex-end;
+        align-items: center;
+        padding: 16px 24px;
+        gap: 16px;
+        font-size: 14px;
+    }
+
+    .logoutBtn {
+        background: transparent;
+        border: 1px solid rgba(255,255,255,0.3);
+        color: white;
+        padding: 6px 12px;
+        border-radius: 8px;
+        cursor: pointer;
+    }
+
+    .logoutBtn:hover {
+        background: rgba(255,255,255,0.1);
+    }
+
+</style>
 </head>
 
 <body>
+
     <!-- 主畫面 -->
     <div id="mainView">
+        <div class="mainBox">
             <h1>LocalJudge</h1>
             <p>Welcome. Start coding directly in VS Code.</p>
-            <button id="goLogin">Login</button>
+            <button id="goLogin" class="fullBtn homeLoginBtn">
+                Login
+            </button>
+        </div>
     </div>
 
     <!-- 登入畫面 -->
     <div id="loginView" class="card hidden">
-
-        <!-- 帳密登入 -->
         <input id="username" placeholder="username" />
         <input id="password" type="password" placeholder="password" />
 
-        <button id="manualLoginBtn" class="fullBtn primaryBtn">
+        <button id="manualLoginBtn" class="fullBtn manualBtn">
             Sign in
         </button>
 
-        <!-- 分隔 -->
         <div class="divider">
             <span>or</span>
         </div>
 
-        <!-- Portal 登入 -->
         <button id="portalLoginBtn" class="fullBtn portalBtn">
             Sign in with Portal
         </button>
     </div>
 
-    <script>
+    <!-- 登入成功後頁面 -->
+    <div id="appView" class="hidden">
+        <div class="topBar">
+            <span id="userDisplay"></span>
+            <button id="logoutBtn" class="logoutBtn">Logout</button>
+        </div>
+    </div>
 
-        const vscode = acquireVsCodeApi();
+<script>
+    const vscode = acquireVsCodeApi();
 
-        window.addEventListener("DOMContentLoaded", () => {
+    const mainView = document.getElementById("mainView");
+    const loginView = document.getElementById("loginView");
+    const appView = document.getElementById("appView");
 
-            const mainView = document.getElementById("mainView");
-            const loginView = document.getElementById("loginView");
-            const goLoginBtn = document.getElementById("goLogin");
+    document.getElementById("goLogin").addEventListener("click", () => {
+        mainView.classList.add("hidden");
+        loginView.classList.remove("hidden");
+    });
 
-            if (goLoginBtn) {
-            goLoginBtn.addEventListener("click", () => {
-                mainView.classList.add("hidden");
-                loginView.classList.remove("hidden");
-            });
-            }
-
+    document.getElementById("manualLoginBtn").addEventListener("click", () => {
+        vscode.postMessage({
+            type: "manualLogin",
+            username: document.getElementById("username").value,
+            password: document.getElementById("password").value
         });
+    });
 
-    </script>
+    document.getElementById("portalLoginBtn").addEventListener("click", () => {
+        vscode.postMessage({ type: "portalLogin" });
+    });
+
+    document.getElementById("logoutBtn").addEventListener("click", () => {
+        vscode.postMessage({ type: "logout" });
+    });
+
+    window.addEventListener("message", (event) => {
+        const msg = event.data;
+
+        if (msg.type === "loginResult" && msg.ok) {
+            mainView.classList.add("hidden");
+            loginView.classList.add("hidden");
+            appView.classList.remove("hidden");
+
+            document.getElementById("userDisplay").innerText =
+                "[" + msg.username + "]";
+        }
+
+        if (msg.type === "loggedOut") {
+            appView.classList.add("hidden");
+            mainView.classList.remove("hidden");
+            document.getElementById("username").value = "";
+            document.getElementById("password").value = "";
+        }
+    });
+</script>
+
 </body>
-</html>`;
+</html>
+`;
 }

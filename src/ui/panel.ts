@@ -1,7 +1,8 @@
 // src/ui/panel.ts
 import * as vscode from "vscode";
 import { getHtml } from "./html";
-import { handleOAuthLogin } from "../auth/oauthLoginHandler";
+// import { handleOAuthLogin } from "../auth/oauthLoginHandler";
+import { loginWithUsernamePassword } from "../auth/loginFlow";
 
 let currentPanel: vscode.WebviewPanel | undefined;
 
@@ -27,14 +28,72 @@ export function openMainPanel(context: vscode.ExtensionContext) {
   // 接收 Webview 傳回的訊息
   panel.webview.onDidReceiveMessage(async (msg) => {
     try {
-      if (msg?.type === "start") {
-        vscode.window.showInformationMessage("Start clicked!");
+
+      if (msg.type === "portalLogin") {
+
+        const extId = context.extension.id;
+
+        const callbackUri = `vscode://${extId}/auth-callback`;
+
+        const portalUrl =
+          "https://portal.ncu.edu.tw/oauth2/authorization";
+
+        await vscode.env.openExternal(
+          vscode.Uri.parse(portalUrl)
+        );
+
         return;
       }
+      if (msg.type === "manualLogin") {
 
-      if (msg?.type === "login") {
-        await handleOAuthLogin(context);
+        try {
+          const username = msg.username;
+          const password = msg.password;
+
+          if (!username || !password) {
+            vscode.window.showErrorMessage("Username or password missing.");
+            return;
+          }
+
+          // 🔵 呼叫你 neon 的 loginFlow
+          const result = await loginWithUsernamePassword({
+            context,
+            baseUrl: "https://pslab.squidspirit.com", // 先填固定值測試
+            username,
+            password,
+            purpose: "localjudge"
+          });
+
+          // 🔵 存 token
+          await context.secrets.store("localjudge.token", result.token);
+
+          vscode.window.showInformationMessage(
+            `Login successful: ${result.user.username} (${result.user.role_name})     `
+          );
+
+          panel.webview.postMessage({
+            type: "loginResult",
+            ok: true, 
+            username: result.user.username
+          });
+
+        } catch (err: any) {
+
+            console.error("LOGIN ERROR:", err);
+
+            const status = err?.response?.status;
+            const data = err?.response?.data;
+
+            vscode.window.showErrorMessage("Login failed");
+        }
+
         return;
+      }
+      if (msg.type === "logout") {
+        await context.secrets.delete("localjudge.token");
+        await context.secrets.delete("localjudge.user");
+
+        panel.webview.postMessage({ type: "loggedOut" });
       }
 
     } catch (e: any) {
