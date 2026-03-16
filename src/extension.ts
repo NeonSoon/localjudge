@@ -1,6 +1,6 @@
 import * as vscode from "vscode";
-import { openMainPanel } from "./ui/panel";
-import { getCurrentPanel } from "./ui/panel";
+import { openMainPanel } from "./backend/panel";
+import { getCurrentPanel } from "./backend/panel";
 
 // VS Code 在 extension「被啟動」時，會自動呼叫 activate(main)
 // context 是 VS Code 借你的「管理工具箱」

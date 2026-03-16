@@ -1,6 +1,6 @@
 import * as vscode from "vscode";
-import { getHtml } from "./html";
-import { loginWithUsernamePassword } from "../auth/loginFlow";
+import { getHtml } from "../frontend/html";
+import { loginWithUsernamePassword } from "./auth/loginFlow";
 
 let currentPanel: vscode.WebviewPanel | undefined;   // 現在開著的web
 
@@ -15,9 +15,9 @@ export function openMainPanel(context: vscode.ExtensionContext) {
   currentPanel = panel;
 
   const iconUri = panel.webview.asWebviewUri(
-    vscode.Uri.joinPath(context.extensionUri, "public", "icon.png")
+    vscode.Uri.joinPath(context.extensionUri, "src", "public", "icon.png")
   );
-  panel.webview.html = getHtml(iconUri);
+  panel.webview.html = getHtml(iconUri.toString());
 
   // 接收 Webview 傳回的訊息
   panel.webview.onDidReceiveMessage(async (msg) => {

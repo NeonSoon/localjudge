@@ -2,7 +2,7 @@
 import * as vscode from "vscode";
 import { loginWithUsernamePassword } from "./loginFlow";
 import { setAuth } from "./tokenStore";
-import { CONFIG_SECTION } from "../config/config";
+import { CONFIG_SECTION } from "../../config/config";
 
 function normalizeBaseUrl(raw: string) {
     return (raw || "").trim().replace(/\/api\/?$/i, "").replace(/\/+$/, "");

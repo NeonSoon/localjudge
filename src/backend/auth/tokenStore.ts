@@ -1,5 +1,5 @@
 import * as vscode from "vscode";
-import { CONFIG_SECTION } from "../config/config";
+import { CONFIG_SECTION } from "../../config/config";
 
 export const SECRET_TOKEN_KEY = "localjudge.accessToken";
 export const SECRET_TOKEN_ID_KEY = "localjudge.accessTokenId";
