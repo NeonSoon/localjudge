@@ -13,7 +13,11 @@ export function openMainPanel(context: vscode.ExtensionContext) {
   );
 
   currentPanel = panel;
-  panel.webview.html = getHtml();
+
+  const iconUri = panel.webview.asWebviewUri(
+    vscode.Uri.joinPath(context.extensionUri, "public", "icon.png")
+  );
+  panel.webview.html = getHtml(iconUri);
 
   // 接收 Webview 傳回的訊息
   panel.webview.onDidReceiveMessage(async (msg) => {
