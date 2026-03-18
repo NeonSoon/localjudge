@@ -97,4 +97,34 @@ export const layout = `
         margin-bottom: 10px;
     }
 
+    /* dashboard */
+    #dashboardView {
+        position: fixed;
+        inset: 0;
+        background: #1e1e1e;
+        display: flex;
+        flex-direction: column;
+    }
+
+    /* username 跟登出按鈕 */
+    .topBar {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        gap: 10px;
+    }
+
+    /* 登出按鈕 */
+    .logoutBtn {
+        background: transparent;
+        border: 1px solid rgba(255,255,255,0.3);
+        color: white;
+        padding: 6px 12px;
+        border-radius: 8px;
+        cursor: pointer;
+    }
+    .logoutBtn:hover {
+        background: rgba(255,255,255,0.1);
+    }
+
 `;
