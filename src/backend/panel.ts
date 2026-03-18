@@ -25,11 +25,20 @@ export function openMainPanel(context: vscode.ExtensionContext) {
 
       if (msg.type === "portalLogin") {
 
-        // 用系統預設瀏覽器打開網址
-        const portalUrl = "https://portal.ncu.edu.tw/oauth2/authorization";
-        await vscode.env.openExternal(vscode.Uri.parse(portalUrl));
+        const res = await fetch(
+          "https://pslab.squidspirit.com/api/oauth/authorize?should_exchange_code=true&redirect_uri=vscode://localjudge-ui/auth-callback"
+        );
 
-        return;
+        const data: any = await res.json();
+        const authUrl = data.auth_url;
+
+        if (!authUrl) {
+          vscode.window.showErrorMessage("Failed to get auth URL");
+          return;
+        }
+
+        await vscode.env.openExternal(vscode.Uri.parse(authUrl));        // 開真正登入頁面
+
       }
       if (msg.type === "manualLogin") {
 

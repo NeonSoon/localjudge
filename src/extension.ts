@@ -16,6 +16,9 @@ export function activate(context: vscode.ExtensionContext) {
 
     const uriHandler = vscode.window.registerUriHandler({
       async handleUri(uri: vscode.Uri) {
+
+        console.log("Received URI:", uri.toString());
+        
         if (uri.path !== "/auth-callback") return;
 
         const params = new URLSearchParams(uri.query);
