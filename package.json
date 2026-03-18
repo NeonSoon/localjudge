@@ -10,18 +10,54 @@
     "Other"
   ],
   "activationEvents": [
-    "onCommand:localjudge-ui.openUI",
-    "onCommand:localjudge.login",
-    "onCommand:localjudge.run",
-    "onCommand:localjudge.refreshLanguages"
   ],
   "main": "./out/extension.js",
   "contributes": {
     "commands": [
-      { "command": "localjudge.login", "title": "LocalJudge: Login (Set Token)" },
-      { "command": "localjudge.run", "title": "LocalJudge: Run (Judge)" },
-      { "command": "localjudge.refreshLanguages", "title": "LocalJudge: Refresh Languages" },
-      { "command": "localjudge-ui.openUI", "title": "LocalJudge: Open UI" }
+      {
+        "command": "localjudge.login",
+        "title": "LocalJudge: Login"
+      },
+      {
+        "command": "localjudge.logout",
+        "title": "LocalJudge: Logout"
+      },
+      {
+        "command": "localjudge.showToken",
+        "title": "LocalJudge: Show Token"
+      },
+      {
+        "command": "localjudge.getProjects",
+        "title": "LocalJudge: Get Projects"
+      },
+      {
+        "command": "localjudge.getObservations",
+        "title": "LocalJudge: Get Observations"
+      },
+      {
+        "command": "localjudge.getBlocks",
+        "title": "LocalJudge: Get Blocks"
+      },
+      {
+        "command": "localjudge.getQuizzes",
+        "title": "LocalJudge: Get Quizzes"
+      },
+      {
+        "command": "localjudge.submission",
+        "title": "LocalJudge: submission"
+      },
+      {
+        "command": "localjudge.codeJudge",
+        "title": "LocalJudge: Code Judge"
+      },
+      {
+        "command": "localjudge.getSubmissions",
+        "title": "LocalJudge: Get Submissions"
+      },
+      {
+        "command": "localjudge-ui.openUI",
+        "title": "LocalJudge: Open UI"
+      }
     ],
     "configuration": {
       "title": "LocalJudge",
@@ -78,14 +114,14 @@
     "test": "vscode-test"
   },
   "devDependencies": {
-    "@types/vscode": "^1.107.0",
     "@types/mocha": "^10.0.10",
     "@types/node": "22.x",
-    "typescript-eslint": "^8.48.1",
+    "@types/vscode": "^1.107.0",
+    "@vscode/test-cli": "^0.0.12",
+    "@vscode/test-electron": "^2.5.2",
     "eslint": "^9.39.1",
     "typescript": "^5.9.3",
-    "@vscode/test-cli": "^0.0.12",
-    "@vscode/test-electron": "^2.5.2"
+    "typescript-eslint": "^8.48.1"
   },
   "dependencies": {
     "axios": "^1.13.2",
