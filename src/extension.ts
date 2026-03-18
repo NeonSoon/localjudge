@@ -14,7 +14,6 @@ export function activate(context: vscode.ExtensionContext) {
   const login = registerLoginCommand(context);
   const refresh = registerRefreshLanguagesCommand(context, output);
   const run = registerRunCommand(context, output);
-
   const uriHandler = registerAuthCallback(context, () => LocalJudgePanel.current);
 
   context.subscriptions.push(openUI, login, refresh, run, uriHandler);
