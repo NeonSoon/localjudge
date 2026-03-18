@@ -1,10 +1,10 @@
 export const base = `
 
     body{
-        font-family:sans-serif;
+        font-family: -apple-system, BlinkMacSystemFont, Segoe UI, sans-serif;
     }
     .hidden{
-        display:none;
+        display: none !important;
     }
 
 `;
