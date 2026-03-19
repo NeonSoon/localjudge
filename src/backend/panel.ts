@@ -26,18 +26,25 @@ export function openMainPanel(context: vscode.ExtensionContext) {
       if (msg.type === "portalLogin") {
 
         const res = await fetch(
-          "https://pslab.squidspirit.com/api/oauth/authorize?should_exchange_code=true&redirect_uri=vscode://localjudge-ui/auth-callback"
+          "https://pslab.squidspirit.com/api/oauth/authorize?should_exchange_code=true"
         );
 
+        console.log("STATUS:", res.status);
+
         const data: any = await res.json();
+        console.log("DATA:", data);
+
         const authUrl = data.auth_url;
+
+        // const data: any = await res.json();
+        // const authUrl = data.auth_url;
 
         if (!authUrl) {
           vscode.window.showErrorMessage("Failed to get auth URL");
           return;
         }
 
-        await vscode.env.openExternal(vscode.Uri.parse(authUrl));        // 開真正登入頁面
+        await vscode.env.openExternal(vscode.Uri.parse(authUrl));
 
       }
       if (msg.type === "manualLogin") {

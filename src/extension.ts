@@ -18,29 +18,77 @@ export function activate(context: vscode.ExtensionContext) {
       async handleUri(uri: vscode.Uri) {
 
         console.log("Received URI:", uri.toString());
-        
+
         if (uri.path !== "/auth-callback") return;
 
         const params = new URLSearchParams(uri.query);
-        const token = params.get("token");
+        const code = params.get("code");
+
+        console.log("CODE:", code);
 
         const panel = getCurrentPanel();
 
-        if (token) {
-          await context.secrets.store("localjudge.token", token);
-          vscode.window.showInformationMessage("Login success! Token received.");
-          panel?.webview.postMessage({ type: "loginResult", ok: true });
-        }
-        else {
-          vscode.window.showErrorMessage("Callback received, but no token.");
-          panel?.webview.postMessage({ type: "loginResult", ok: false });
+        if (code) {
+          try {
+            const baseUrl = vscode.workspace
+              .getConfiguration("localjudge")
+              .get("baseUrl");
+
+            const res = await fetch(`${baseUrl}/oauth/token`, {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json"
+              },
+              body: JSON.stringify({ code })
+            });
+
+            const data: any = await res.json();
+            console.log("TOKEN RESPONSE:", data);
+
+            const token = data.access_token;
+
+            if (token) {
+              await context.secrets.store("localjudge.token", token);
+
+              vscode.window.showInformationMessage("Login success!");
+
+              panel?.webview.postMessage({
+                type: "loginResult",
+                ok: true
+              });
+
+            } else {
+              vscode.window.showErrorMessage("No token received");
+            }
+
+          } catch (err) {
+            console.error("TOKEN ERROR:", err);
+            vscode.window.showErrorMessage("Token exchange failed");
+          }
+
+        } else {
+          vscode.window.showErrorMessage("No code in callback");
         }
       }
     });
 
+    const testLogin = vscode.commands.registerCommand("localjudge.testLogin", async () => {
+      const panel = getCurrentPanel();
 
+      await context.secrets.store("localjudge.token", "123");
+
+      panel?.webview.postMessage({
+        type: "loginResult",
+        ok: true,
+        username: "test_user"
+      });
+
+      vscode.window.showInformationMessage("Fake login success");
+    });
+
+    console.log("Extension activated");
   // 註冊清理 reload 就一起清掉
-    context.subscriptions.push(openUI, uriHandler);
+    context.subscriptions.push(openUI, uriHandler, testLogin);
 }
 
 export function deactivate() {}
