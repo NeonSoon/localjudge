@@ -1,6 +1,7 @@
 import * as vscode from "vscode";
 import { logoutAndRevokeToken } from "../auth/logoutFlow";
 import { CONFIG_SECTION } from "../config/config";
+import { clearProjectListCache } from "../project/projectStore";
 
 function normalizeBaseUrl(raw: string) {
   let u = (raw || "").trim().replace(/\/+$/, "");
@@ -8,7 +9,10 @@ function normalizeBaseUrl(raw: string) {
   return u;
 }
 
-export function registerLogoutCommand(context: vscode.ExtensionContext) {
+export function registerLogoutCommand(
+  context: vscode.ExtensionContext,
+  onLoggedOut?: () => void
+) {
   return vscode.commands.registerCommand("localjudge.logout", async () => {
     const cfg = vscode.workspace.getConfiguration(CONFIG_SECTION);
     const rawBaseUrl = cfg.get<string>("baseUrl") || "";
@@ -27,9 +31,11 @@ export function registerLogoutCommand(context: vscode.ExtensionContext) {
       },
       async () => {
         await logoutAndRevokeToken({ baseUrl, context });
+        await clearProjectListCache(context);
       }
     );
 
+    onLoggedOut?.();
     vscode.window.setStatusBarMessage("LocalJudge: logged out", 5000);
     vscode.window.showInformationMessage("Logout successful");
   });

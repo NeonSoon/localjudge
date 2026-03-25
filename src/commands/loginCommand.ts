@@ -24,7 +24,10 @@ function normalizeBaseUrl(raw: string) {
   return u;
 }
 
-export function registerLoginCommand(context: vscode.ExtensionContext) {
+export function registerLoginCommand(
+  context: vscode.ExtensionContext,
+  onLoggedIn?: (username?: string) => void
+) {
   return vscode.commands.registerCommand("localjudge.login", async () => {
     const cfg = vscode.workspace.getConfiguration(CONFIG_SECTION);
     const rawBaseUrl = (cfg.get<string>("baseUrl") || "").trim();
@@ -82,7 +85,7 @@ export function registerLoginCommand(context: vscode.ExtensionContext) {
           out.appendLine(`  tokenId=${tokenId ?? "(none)"}`);
 
           progress.report({ message: "Saving token..." });
-          await setAuth(context, { token, tokenId });
+          await setAuth(context, { token, tokenId, username: user.username });
 
           return { token, tokenId, user };
         }
@@ -121,6 +124,9 @@ export function registerLoginCommand(context: vscode.ExtensionContext) {
         `LocalJudge: logged in as ${user.username} (${user.role_name})`,
         8000
       );
+
+      onLoggedIn?.(user.username);
+      await vscode.commands.executeCommand("localjudge.getProjects");
     } catch (e: any) {
       const status = e?.response?.status;
       const headers = e?.response?.headers;

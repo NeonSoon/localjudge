@@ -1,44 +1,64 @@
 import * as vscode from "vscode";
-import { getHtml } from "./html";
+import type { Project } from "../project/projectStore";
+import { getSidebarHtml } from "./sidebarView";
 import type { FromWebview, ToWebview } from "./messages";
 
-export class LocalJudgePanel {
+export class LocalJudgePanel implements vscode.WebviewViewProvider {
+  static readonly containerId = "localjudge";
+  static readonly viewType = "localjudge.sidebar";
   private static currentPanel: LocalJudgePanel | undefined;
-  private panel: vscode.WebviewPanel;
+  private view: vscode.WebviewView | undefined;
+  private messageHandler: ((msg: FromWebview) => void) | undefined;
 
-  private constructor(panel: vscode.WebviewPanel) {
-    this.panel = panel;
-    this.panel.webview.html = getHtml();
+  constructor() {
+    LocalJudgePanel.currentPanel = this;
   }
 
-  static createOrShow() {
-    if (LocalJudgePanel.currentPanel) {
-      LocalJudgePanel.currentPanel.panel.reveal(vscode.ViewColumn.One);
-      return LocalJudgePanel.currentPanel;
-    }
+  async resolveWebviewView(webviewView: vscode.WebviewView) {
+    this.view = webviewView;
+    webviewView.webview.options = { enableScripts: true };
+    webviewView.webview.html = getSidebarHtml(webviewView.webview);
 
-    const panel = vscode.window.createWebviewPanel(
-      "localjudgeUI",
-      "LocalJudge",
-      vscode.ViewColumn.One,
-      { enableScripts: true }
-    );
-
-    LocalJudgePanel.currentPanel = new LocalJudgePanel(panel);
-
-    panel.onDidDispose(() => {
-      LocalJudgePanel.currentPanel = undefined;
+    webviewView.webview.onDidReceiveMessage((msg: FromWebview) => {
+      this.messageHandler?.(msg);
     });
 
-    return LocalJudgePanel.currentPanel;
+    webviewView.onDidDispose(() => {
+      if (this.view === webviewView) {
+        this.view = undefined;
+      }
+    });
   }
 
-  onMessage(handler: (msg: FromWebview) => void) {
-    return this.panel.webview.onDidReceiveMessage(handler);
+  setMessageHandler(handler: (msg: FromWebview) => void) {
+    this.messageHandler = handler;
+  }
+
+  async reveal() {
+    await vscode.commands.executeCommand(
+      `workbench.view.extension.${LocalJudgePanel.containerId}`
+    );
+    await vscode.commands.executeCommand(`${LocalJudgePanel.viewType}.focus`);
   }
 
   postMessage(msg: ToWebview) {
-    return this.panel.webview.postMessage(msg);
+    return this.view?.webview.postMessage(msg);
+  }
+
+  showProjects(projects: Project[]) {
+    return this.postMessage({ type: "projectsLoaded", projects });
+  }
+
+  showProjectsLoading(message?: string) {
+    return this.postMessage({ type: "projectsLoading", message });
+  }
+
+  showProjectsError(message: string) {
+    return this.postMessage({ type: "projectsError", message });
+  }
+
+  showAuthState(loggedIn: boolean, username?: string) {
+    return this.postMessage({ type: "authState", loggedIn, username });
   }
 
   static get current() {

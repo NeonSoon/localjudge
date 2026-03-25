@@ -1,6 +1,11 @@
+import type { Project } from "../project/projectStore";
+
 export type FromWebview =
-  | { type: "start" }
   | { type: "login" };
 
 export type ToWebview =
-  | { type: "loginResult"; ok: boolean };
+  | { type: "authState"; loggedIn: boolean; username?: string }
+  | { type: "loginResult"; ok: boolean; message?: string }
+  | { type: "projectsLoading"; message?: string }
+  | { type: "projectsLoaded"; projects: Project[] }
+  | { type: "projectsError"; message: string };

@@ -10,9 +10,28 @@
     "Other"
   ],
   "activationEvents": [
+    "onStartupFinished"
   ],
   "main": "./out/extension.js",
   "contributes": {
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "localjudge",
+          "title": "LocalJudge",
+          "icon": "media/localjudge.svg"
+        }
+      ]
+    },
+    "views": {
+      "localjudge": [
+        {
+          "id": "localjudge.sidebar",
+          "name": "LocalJudge",
+          "type": "webview"
+        }
+      ]
+    },
     "commands": [
       {
         "command": "localjudge.login",

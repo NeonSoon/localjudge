@@ -1,6 +1,7 @@
 import * as vscode from "vscode";
 import { registerOpenUI } from "./commands/openUI";
 import { registerAuthCallback } from "./auth/uriHandler";
+import { refreshSidebarSession } from "./auth/sessionState";
 import { LocalJudgePanel } from "./ui/panel";
 import { registerLoginCommand } from "./commands/loginCommand";
 import { registerShowTokenCommand } from "./commands/showtoken";
@@ -16,12 +17,24 @@ import { registerGetSubmissionsCommand } from "./submission/getSubmissions";
 export function activate(context: vscode.ExtensionContext) {
   const output = vscode.window.createOutputChannel("LocalJudge");
   context.subscriptions.push(output);
-  const openUI = registerOpenUI(context);
-  const login = registerLoginCommand(context);
+  const localJudgePanel = new LocalJudgePanel();
+  const localJudgeViewProvider = vscode.window.registerWebviewViewProvider(
+    LocalJudgePanel.viewType,
+    localJudgePanel
+  );
+  const openUI = registerOpenUI(context, localJudgePanel);
+  const login = registerLoginCommand(context, (username) => {
+    void localJudgePanel.showAuthState(true, username);
+  });
   const uriHandler = registerAuthCallback(context, () => LocalJudgePanel.current);
   const showToken = registerShowTokenCommand(context, output);
-  const logout = registerLogoutCommand(context);
-  const getProjects = registerGetProjectsCommand(context);
+  const logout = registerLogoutCommand(context, () => {
+    void localJudgePanel.showAuthState(false);
+    void localJudgePanel.showProjectsError("Not logged in. Please login to load your project list.");
+  });
+  const getProjects = registerGetProjectsCommand(context, (projects) => {
+    void localJudgePanel.showProjects(projects);
+  });
   const getObservations = registerGetObservationsCommand(context);
   const getBlocks = registerGetBlocksCommand(context);
   const getQuizzes = registerGetQuizzesCommand(context);
@@ -29,6 +42,7 @@ export function activate(context: vscode.ExtensionContext) {
   const codeJudge = registerCodeJudgeCommand(context);
   const getSubmissions = registerGetSubmissionsCommand(context);
   context.subscriptions.push(
+    localJudgeViewProvider,
     openUI,
     login,
     showToken,
@@ -42,6 +56,11 @@ export function activate(context: vscode.ExtensionContext) {
     codeJudge,
     getSubmissions
   );
+
+  void setTimeout(() => {
+    void localJudgePanel.reveal();
+    void refreshSidebarSession(context, localJudgePanel);
+  }, 300);
 }
 
 export function deactivate() {}
