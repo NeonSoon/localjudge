@@ -181,6 +181,7 @@ export async function fetchProjectDetails(
                 quizType: quiz.quiz_type,
                 weight: quiz.weight,
                 sortOrder: quiz.sort_order,
+                config: quiz.config,
               })),
           } satisfies BlockSummary;
         })

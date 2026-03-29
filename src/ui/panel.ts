@@ -73,6 +73,55 @@ export class LocalJudgePanel implements vscode.WebviewViewProvider {
     return this.postMessage({ type: "projectDetailsError", projectId, projectName, message });
   }
 
+  showCodeJudgeStarted(
+    quizId: string,
+    message?: string,
+    editorLanguage?: string,
+    judgeLanguage?: string
+  ) {
+    return this.postMessage({
+      type: "codeJudgeStarted",
+      quizId,
+      message,
+      editorLanguage,
+      judgeLanguage,
+    });
+  }
+
+  showCodeJudgeFinished(
+    quizId: string,
+    message: string,
+    editorLanguage?: string,
+    judgeLanguage?: string,
+    resultLabel?: string,
+    resultDetails?: string
+  ) {
+    return this.postMessage({
+      type: "codeJudgeFinished",
+      quizId,
+      message,
+      editorLanguage,
+      judgeLanguage,
+      resultLabel,
+      resultDetails,
+    });
+  }
+
+  showCodeJudgeError(
+    quizId: string,
+    message: string,
+    editorLanguage?: string,
+    judgeLanguage?: string
+  ) {
+    return this.postMessage({
+      type: "codeJudgeError",
+      quizId,
+      message,
+      editorLanguage,
+      judgeLanguage,
+    });
+  }
+
   static get current() {
     return this.currentPanel;
   }

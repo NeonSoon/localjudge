@@ -34,6 +34,19 @@ function pickSourceCode(): string | undefined {
   return ed.document.getText();
 }
 
+function getActiveEditorLabel(): string | undefined {
+  const ed = vscode.window.activeTextEditor;
+  if (!ed) return;
+
+  const languageId = ed.document.languageId?.trim();
+  const fileName = ed.document.fileName.split("/").pop() || ed.document.fileName;
+  if (!languageId) {
+    return fileName;
+  }
+
+  return `${fileName} (${languageId})`;
+}
+
 function getActiveEditorLanguageHints(): string[] {
   const ed = vscode.window.activeTextEditor;
   if (!ed) return [];
@@ -128,7 +141,19 @@ async function pickQuizFromCache(context: vscode.ExtensionContext): Promise<Quiz
   return picked?.quiz;
 }
 
-async function pickLanguageId(baseUrl: string, token: string): Promise<number | undefined> {
+async function findQuizByIdInCache(
+  context: vscode.ExtensionContext,
+  quizId: string
+): Promise<Quiz | undefined> {
+  const quizMap = await getQuizzesMapCache(context);
+  const allQuizzes: Quiz[] = quizMap ? Object.values(quizMap).flat() : [];
+  return allQuizzes.find((quiz) => quiz.id === quizId);
+}
+
+async function pickLanguage(
+  baseUrl: string,
+  token: string
+): Promise<{ id: number; name: string } | undefined> {
   const languages = await getLanguages(baseUrl, token);
   if (!Array.isArray(languages) || languages.length === 0) {
     vscode.window.showErrorMessage("No judge languages available.");
@@ -138,14 +163,21 @@ async function pickLanguageId(baseUrl: string, token: string): Promise<number | 
   const hints = getActiveEditorLanguageHints();
   const detectedLanguageId = findMatchingLanguageId(languages, hints);
   if (detectedLanguageId !== undefined) {
-    return detectedLanguageId;
+    const detectedLanguage = languages.find((lang) => lang.id === detectedLanguageId);
+    return {
+      id: detectedLanguageId,
+      name: detectedLanguage?.name || `language ${detectedLanguageId}`,
+    };
   }
 
   const picked = await vscode.window.showQuickPick(
     languages.map((lang: JudgeLanguage) => ({
       label: lang.name || `language ${lang.id}`,
       description: `id=${lang.id}`,
-      languageId: lang.id,
+      language: {
+        id: lang.id,
+        name: lang.name || `language ${lang.id}`,
+      },
     })),
     {
       title: "Select language for Code Judge",
@@ -154,7 +186,7 @@ async function pickLanguageId(baseUrl: string, token: string): Promise<number | 
     }
   );
 
-  return picked?.languageId;
+  return picked?.language;
 }
 
 function readStringField(record: Record<string, unknown>, keys: string[]): string | undefined {
@@ -219,87 +251,125 @@ async function pollResult(args: {
   }
 }
 
+export async function runCodeJudgeForQuiz(
+  context: vscode.ExtensionContext,
+  options?: { quizId?: string }
+) {
+  const log = out();
+  log.appendLine("=== Code Judge ===");
+  log.show(true);
+
+  const c = cfg();
+  const baseUrl = normalizeBaseUrl(c.baseUrl);
+  if (!baseUrl) {
+    vscode.window.showErrorMessage(`Missing config: ${CONFIG_SECTION}.baseUrl`);
+    return;
+  }
+
+  const token = await getToken(context);
+  if (!token) {
+    vscode.window.showErrorMessage("LocalJudge: missing token (please login first)");
+    return;
+  }
+
+  const sourceCode = pickSourceCode();
+  if (!sourceCode) {
+    vscode.window.showErrorMessage("No active editor text to submit.");
+    return;
+  }
+
+  const quiz = options?.quizId
+    ? await findQuizByIdInCache(context, options.quizId)
+    : await pickQuizFromCache(context);
+  if (!quiz) {
+    throw new Error(
+      options?.quizId
+        ? `Quiz ${options.quizId} not found in cache. Please reopen the project details first.`
+        : "No quiz selected."
+    );
+  }
+
+  const quizStdin = extractStdinFromQuizConfig(quiz.config);
+  const stdin = quizStdin ?? c.stdinDefault;
+  const selectedLanguage = await pickLanguage(baseUrl, token);
+  if (!selectedLanguage) {
+    return;
+  }
+
+  const body = {
+    language_id: selectedLanguage.id || DEFAULT_LANGUAGE_ID,
+    source_code: sourceCode,
+    stdin,
+    expected_output: {},
+  };
+  const editorLanguage = getActiveEditorLabel();
+
+  try {
+    log.appendLine("[code-judge] POST /code-judge/judge");
+    log.appendLine(`[code-judge] wait=${c.wait}`);
+    log.appendLine(`[code-judge] quiz=${quiz.id}`);
+    log.appendLine(`[code-judge] language_id=${body.language_id}`);
+    log.appendLine(`[code-judge] stdinSource=${quizStdin !== undefined ? "quiz.config" : "config.stdinDefault"}`);
+    log.appendLine("[code-judge] request:");
+    log.appendLine(safeJson(body));
+
+    const created = await createSubmission(baseUrl, c.wait, body, token);
+    log.appendLine("[code-judge] response:");
+    log.appendLine(safeJson(created));
+
+    if (c.wait) {
+      const statusText = String(created?.status?.description ?? "completed");
+      vscode.window.showInformationMessage(`CodeJudge: ${statusText}`);
+      return {
+        editorLanguage,
+        judgeLanguage: selectedLanguage.name,
+        resultLabel: statusText,
+        resultDetails: safeJson(created),
+      };
+    }
+
+    const submissionToken = String(created?.token ?? "").trim();
+    if (!submissionToken) {
+      vscode.window.showWarningMessage("Created submission but response token is missing (wait=false).");
+      return {
+        editorLanguage,
+        judgeLanguage: selectedLanguage.name,
+        resultLabel: "Submission created",
+        resultDetails: safeJson(created),
+      };
+    }
+
+    await context.globalState.update("localjudge.lastJudgeToken", submissionToken);
+    const final = await pollResult({
+      baseUrl,
+      token,
+      submissionToken,
+      pollIntervalMs: c.pollIntervalMs,
+      timeoutMs: c.pollTimeoutMs,
+      log,
+    });
+    const statusText = String(final?.status?.description ?? "completed");
+
+    vscode.window.showInformationMessage(
+      `CodeJudge: ${statusText} (token=${submissionToken})`
+    );
+
+    return {
+      editorLanguage,
+      judgeLanguage: selectedLanguage.name,
+      resultLabel: statusText,
+      resultDetails: safeJson(final),
+    };
+  } catch (err: any) {
+    log.appendLine(`❌ Error: ${err?.message ?? err}`);
+    vscode.window.showErrorMessage(`CodeJudge failed: ${err?.message ?? err}`);
+    throw err;
+  }
+}
+
 export function registerCodeJudgeCommand(context: vscode.ExtensionContext) {
   const run = async () => {
-    const log = out();
-    log.appendLine("=== Code Judge ===");
-    log.show(true);
-
-    const c = cfg();
-    const baseUrl = normalizeBaseUrl(c.baseUrl);
-    if (!baseUrl) {
-      vscode.window.showErrorMessage(`Missing config: ${CONFIG_SECTION}.baseUrl`);
-      return;
-    }
-
-    const token = await getToken(context);
-    if (!token) {
-      vscode.window.showErrorMessage("LocalJudge: missing token (please login first)");
-      return;
-    }
-
-    const sourceCode = pickSourceCode();
-    if (!sourceCode) {
-      vscode.window.showErrorMessage("No active editor text to submit.");
-      return;
-    }
-
-    const quiz = await pickQuizFromCache(context);
-    if (!quiz) return;
-
-    const quizStdin = extractStdinFromQuizConfig(quiz.config);
-    const stdin = quizStdin ?? c.stdinDefault;
-    const languageId = await pickLanguageId(baseUrl, token);
-    if (languageId === undefined) return;
-
-    const body = {
-      language_id: languageId || DEFAULT_LANGUAGE_ID,
-      source_code: sourceCode,
-      stdin,
-      expected_output: {},
-    };
-
-    try {
-      log.appendLine("[code-judge] POST /code-judge/judge");
-      log.appendLine(`[code-judge] wait=${c.wait}`);
-      log.appendLine(`[code-judge] quiz=${quiz.id}`);
-      log.appendLine(`[code-judge] language_id=${body.language_id}`);
-      log.appendLine(`[code-judge] stdinSource=${quizStdin !== undefined ? "quiz.config" : "config.stdinDefault"}`);
-      log.appendLine("[code-judge] request:");
-      log.appendLine(safeJson(body));
-
-      const created = await createSubmission(baseUrl, c.wait, body, token);
-      log.appendLine("[code-judge] response:");
-      log.appendLine(safeJson(created));
-
-      if (c.wait) {
-        vscode.window.showInformationMessage("CodeJudge finished (wait=true).");
-        return;
-      }
-
-      const submissionToken = String(created?.token ?? "").trim();
-      if (!submissionToken) {
-        vscode.window.showWarningMessage("Created submission but response token is missing (wait=false).");
-        return;
-      }
-
-      await context.globalState.update("localjudge.lastJudgeToken", submissionToken);
-      const final = await pollResult({
-        baseUrl,
-        token,
-        submissionToken,
-        pollIntervalMs: c.pollIntervalMs,
-        timeoutMs: c.pollTimeoutMs,
-        log,
-      });
-
-      vscode.window.showInformationMessage(
-        `CodeJudge: ${final?.status?.description ?? "completed"} (token=${submissionToken})`
-      );
-    } catch (err: any) {
-      log.appendLine(`❌ Error: ${err?.message ?? err}`);
-      vscode.window.showErrorMessage(`CodeJudge failed: ${err?.message ?? err}`);
-    }
+    await runCodeJudgeForQuiz(context);
   };
 
   return vscode.Disposable.from(

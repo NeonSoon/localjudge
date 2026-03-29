@@ -1,6 +1,7 @@
 import * as vscode from "vscode";
 import { refreshSidebarSession } from "../auth/sessionState";
 import { fetchProjectDetails } from "../project/loadProjectDetails";
+import { runCodeJudgeForQuiz } from "../submission/codejudge";
 import { LocalJudgePanel } from "../ui/panel";
 import type { FromWebview } from "../ui/messages";
 
@@ -36,6 +37,31 @@ export function registerOpenUI(
           msg.projectId,
           msg.projectName,
           String(error?.message ?? error ?? "Failed to load project details.")
+        );
+      }
+    }
+
+    if (msg.type === "selectQuiz") {
+      return;
+    }
+
+    if (msg.type === "runCodeJudge") {
+      panel.showCodeJudgeStarted(msg.quizId, "Running Code Judge...");
+
+      try {
+        const result = await runCodeJudgeForQuiz(context, { quizId: msg.quizId });
+        panel.showCodeJudgeFinished(
+          msg.quizId,
+          "Code Judge completed.",
+          result?.editorLanguage,
+          result?.judgeLanguage,
+          result?.resultLabel,
+          result?.resultDetails
+        );
+      } catch (error: any) {
+        panel.showCodeJudgeError(
+          msg.quizId,
+          String(error?.message ?? error ?? "Code Judge failed.")
         );
       }
     }
