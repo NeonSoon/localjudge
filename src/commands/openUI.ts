@@ -1,5 +1,6 @@
 import * as vscode from "vscode";
 import { refreshSidebarSession } from "../auth/sessionState";
+import { fetchProjectDetails } from "../project/loadProjectDetails";
 import { LocalJudgePanel } from "../ui/panel";
 import type { FromWebview } from "../ui/messages";
 
@@ -18,6 +19,25 @@ export function registerOpenUI(
     if (msg.type === "login") {
       panel.showProjectsLoading("Opening login page...");
       await openLoginPage(context);
+    }
+
+    if (msg.type === "selectProject") {
+      panel.showProjectDetailsLoading(
+        msg.projectId,
+        msg.projectName,
+        "Loading blocks and quizzes..."
+      );
+
+      try {
+        const blocks = await fetchProjectDetails(context, msg.projectId);
+        panel.showProjectDetails(msg.projectId, msg.projectName, blocks);
+      } catch (error: any) {
+        panel.showProjectDetailsError(
+          msg.projectId,
+          msg.projectName,
+          String(error?.message ?? error ?? "Failed to load project details.")
+        );
+      }
     }
   });
 

@@ -1,7 +1,7 @@
 import * as vscode from "vscode";
 import type { Project } from "../project/projectStore";
 import { getSidebarHtml } from "./sidebarView";
-import type { FromWebview, ToWebview } from "./messages";
+import type { BlockSummary, FromWebview, ToWebview } from "./messages";
 
 export class LocalJudgePanel implements vscode.WebviewViewProvider {
   static readonly containerId = "localjudge";
@@ -59,6 +59,18 @@ export class LocalJudgePanel implements vscode.WebviewViewProvider {
 
   showAuthState(loggedIn: boolean, username?: string) {
     return this.postMessage({ type: "authState", loggedIn, username });
+  }
+
+  showProjectDetailsLoading(projectId: string, projectName?: string, message?: string) {
+    return this.postMessage({ type: "projectDetailsLoading", projectId, projectName, message });
+  }
+
+  showProjectDetails(projectId: string, projectName: string | undefined, blocks: BlockSummary[]) {
+    return this.postMessage({ type: "projectDetailsLoaded", projectId, projectName, blocks });
+  }
+
+  showProjectDetailsError(projectId: string, projectName: string | undefined, message: string) {
+    return this.postMessage({ type: "projectDetailsError", projectId, projectName, message });
   }
 
   static get current() {

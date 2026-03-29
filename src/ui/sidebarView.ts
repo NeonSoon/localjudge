@@ -52,6 +52,15 @@ export function getSidebarHtml(
       gap: 16px;
     }
 
+    .view {
+      display: grid;
+      gap: 16px;
+    }
+
+    .view[hidden] {
+      display: none;
+    }
+
     .topbar {
       display: flex;
       justify-content: space-between;
@@ -176,12 +185,19 @@ export function getSidebarHtml(
     }
 
     .project-item {
+      width: 100%;
       display: grid;
       gap: 8px;
       background: var(--panel-2);
       border: 1px solid var(--border);
       border-radius: 14px;
       padding: 12px;
+      text-align: left;
+      cursor: pointer;
+    }
+
+    .project-item:hover {
+      border-color: rgba(79, 195, 247, 0.4);
     }
 
     .project-name {
@@ -224,6 +240,94 @@ export function getSidebarHtml(
     .load-more:hover {
       border-color: rgba(79, 195, 247, 0.4);
     }
+
+    .back-btn {
+      width: fit-content;
+      min-height: 36px;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      background: var(--panel);
+      color: var(--text);
+      font-size: 12px;
+      font-weight: 700;
+      padding: 0 12px;
+      cursor: pointer;
+    }
+
+    .back-btn:hover {
+      border-color: rgba(79, 195, 247, 0.4);
+    }
+
+    .detail-header {
+      display: grid;
+      gap: 10px;
+    }
+
+    .detail-card {
+      background: linear-gradient(180deg, rgba(79, 195, 247, 0.12), rgba(79, 195, 247, 0.02));
+      border: 1px solid rgba(79, 195, 247, 0.18);
+      border-radius: 18px;
+      padding: 16px;
+    }
+
+    .detail-card h2 {
+      margin: 0;
+      font-size: 22px;
+      line-height: 1.15;
+      word-break: break-word;
+    }
+
+    .detail-card p {
+      margin: 8px 0 0;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.5;
+    }
+
+    .detail-list {
+      display: grid;
+      gap: 10px;
+    }
+
+    .block-card {
+      display: grid;
+      gap: 10px;
+      background: var(--panel-2);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 12px;
+    }
+
+    .block-name {
+      margin: 0;
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--text);
+      word-break: break-word;
+    }
+
+    .quiz-list {
+      display: grid;
+      gap: 8px;
+    }
+
+    .quiz-card {
+      display: grid;
+      gap: 8px;
+      background: var(--panel);
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      border-radius: 12px;
+      padding: 12px;
+    }
+
+    .quiz-question {
+      margin: 0;
+      font-size: 13px;
+      line-height: 1.5;
+      color: var(--text);
+      word-break: break-word;
+      white-space: pre-wrap;
+    }
   </style>
 </head>
 <body>
@@ -236,24 +340,44 @@ export function getSidebarHtml(
       <button id="login" class="login-btn">Login</button>
     </div>
 
-    <section class="card">
-      <h2>Your Projects</h2>
-      <p>Login from the command palette or use the button here. After login, the sidebar will fetch and list your projects automatically.</p>
-    </section>
+    <div id="projectView" class="view">
+      <section class="card">
+        <h2>Your Projects</h2>
+        <p>Login from the command palette or use the button here. After login, the sidebar will fetch and list your projects automatically.</p>
+      </section>
 
-    <section>
-      <div class="section-title">
-        <h3>Project List</h3>
-        <span id="count" class="count">0 items</span>
-      </div>
-      <div class="toolbar">
-        <input id="search" class="search-input" type="search" placeholder="Search projects..." />
-        <div class="toolbar-meta">
-          <span id="results">0 shown</span>
+      <section>
+        <div class="section-title">
+          <h3>Project List</h3>
+          <span id="count" class="count">0 items</span>
         </div>
+        <div class="toolbar">
+          <input id="search" class="search-input" type="search" placeholder="Search projects..." />
+          <div class="toolbar-meta">
+            <span id="results">0 shown</span>
+          </div>
+        </div>
+        <div id="content"></div>
+      </section>
+    </div>
+
+    <div id="detailView" class="view" hidden>
+      <div class="detail-header">
+        <button id="back" class="back-btn" type="button">Back to Projects</button>
+        <section class="detail-card">
+          <h2 id="detailTitle">Project Details</h2>
+          <p id="detailSubtitle">Loading blocks and quizzes...</p>
+        </section>
       </div>
-      <div id="content"></div>
-    </section>
+
+      <section>
+        <div class="section-title">
+          <h3>Blocks & Quizzes</h3>
+          <span id="detailCount" class="count"></span>
+        </div>
+        <div id="detailContent"></div>
+      </section>
+    </div>
   </div>
 
   <script>
@@ -261,14 +385,31 @@ export function getSidebarHtml(
     const initialProjects = ${initialProjects};
 
     const loginButton = document.getElementById("login");
+    const projectView = document.getElementById("projectView");
+    const detailView = document.getElementById("detailView");
+    const backButton = document.getElementById("back");
     const searchInput = document.getElementById("search");
     const content = document.getElementById("content");
     const count = document.getElementById("count");
     const results = document.getElementById("results");
+    const detailTitle = document.getElementById("detailTitle");
+    const detailSubtitle = document.getElementById("detailSubtitle");
+    const detailCount = document.getElementById("detailCount");
+    const detailContent = document.getElementById("detailContent");
     const PAGE_SIZE = 5;
-    let allProjects = Array.isArray(initialProjects) ? initialProjects : [];
+
+    function normalizeProjects(projects) {
+      return (Array.isArray(projects) ? projects : []).map((project) => ({
+        ...project,
+        loaded: project && project.loaded === 1 ? 1 : 0,
+      }));
+    }
+
+    let allProjects = normalizeProjects(initialProjects);
     let filteredProjects = allProjects.slice();
     let visibleCount = PAGE_SIZE;
+    let selectedProjectId = "";
+    let selectedProjectName = "";
 
     loginButton.addEventListener("click", () => {
       vscode.postMessage({ type: "login" });
@@ -297,6 +438,16 @@ export function getSidebarHtml(
       content.innerHTML = '<div class="state">' + message + "</div>";
     }
 
+    function showProjectView() {
+      projectView.hidden = false;
+      detailView.hidden = true;
+    }
+
+    function showDetailView() {
+      projectView.hidden = true;
+      detailView.hidden = false;
+    }
+
     function escapeHtml(value) {
       return String(value)
         .replaceAll("&", "&amp;")
@@ -304,6 +455,66 @@ export function getSidebarHtml(
         .replaceAll(">", "&gt;")
         .replaceAll('"', "&quot;")
         .replaceAll("'", "&#39;");
+    }
+
+    function setDetailHeader(projectName, subtitle) {
+      detailTitle.textContent = projectName || "Project Details";
+      detailSubtitle.textContent = subtitle || "";
+    }
+
+    function renderDetailState(message) {
+      detailCount.textContent = "";
+      detailContent.innerHTML = '<div class="state">' + escapeHtml(message) + "</div>";
+    }
+
+    function renderProjectDetails(blocks) {
+      if (!Array.isArray(blocks) || !blocks.length) {
+        detailCount.textContent = "0 blocks";
+        renderDetailState("No blocks found for this project.");
+        return;
+      }
+
+      detailCount.textContent = blocks.length + " blocks";
+
+      const items = blocks.map((block) => {
+        const blockTitle = block.name || block.type || "Unnamed Block";
+        const blockMeta = [
+          block.observationName ? '<span class="chip">Observation: ' + escapeHtml(block.observationName) + "</span>" : "",
+          block.type ? '<span class="chip">Type: ' + escapeHtml(block.type) + "</span>" : "",
+          '<span class="chip">Block ID: ' + escapeHtml(block.id) + "</span>",
+        ]
+          .filter(Boolean)
+          .join("");
+
+        const quizzes = Array.isArray(block.quizzes) && block.quizzes.length
+          ? '<div class="quiz-list">' + block.quizzes.map((quiz) => {
+            const quizMeta = [
+              quiz.quizType ? '<span class="chip">Type: ' + escapeHtml(quiz.quizType) + "</span>" : "",
+              quiz.weight !== undefined ? '<span class="chip">Weight: ' + escapeHtml(String(quiz.weight)) + "</span>" : "",
+              '<span class="chip">Quiz ID: ' + escapeHtml(quiz.id) + "</span>",
+            ]
+              .filter(Boolean)
+              .join("");
+
+            return [
+              '<article class="quiz-card">',
+              '<p class="quiz-question">' + escapeHtml(quiz.question || "Untitled quiz") + "</p>",
+              '<div class="meta">' + quizMeta + "</div>",
+              "</article>",
+            ].join("");
+          }).join("") + "</div>"
+          : '<div class="state">This block has no quizzes.</div>';
+
+        return [
+          '<article class="block-card">',
+          '<h4 class="block-name">' + escapeHtml(blockTitle) + "</h4>",
+          '<div class="meta">' + blockMeta + "</div>",
+          quizzes,
+          "</article>",
+        ].join("");
+      });
+
+      detailContent.innerHTML = '<div class="detail-list">' + items.join("") + "</div>";
     }
 
     function applySearch() {
@@ -335,21 +546,26 @@ export function getSidebarHtml(
         return;
       }
 
-      const visibleProjects = filteredProjects.slice(0, visibleCount);
+      const newlyVisibleProjects = filteredProjects.slice(0, visibleCount);
+      newlyVisibleProjects.forEach((project) => {
+        project.loaded = 1;
+      });
+
+      const visibleProjects = filteredProjects.filter((project) => project.loaded === 1);
       results.textContent = "Showing " + visibleProjects.length + " / " + filteredProjects.length;
 
       const items = visibleProjects.map((project) => {
         const visibility = project.is_public ? "Public" : "Private";
         const updated = formatDate(project.updated_at || project.created_at);
         return [
-          '<article class="project-item">',
+          '<button class="project-item loaded-' + project.loaded + '" data-loaded="' + project.loaded + '" data-project-id="' + escapeHtml(project.id) + '" data-project-name="' + escapeHtml(project.name) + '" type="button">',
           '<h4 class="project-name">' + escapeHtml(project.name) + "</h4>",
           '<div class="meta">',
           '<span class="chip">ID: ' + escapeHtml(project.id) + "</span>",
           '<span class="chip">' + visibility + "</span>",
           '<span class="chip">Updated: ' + escapeHtml(updated) + "</span>",
           "</div>",
-          "</article>",
+          "</button>",
         ].join("");
       });
 
@@ -359,7 +575,7 @@ export function getSidebarHtml(
         : "";
 
       content.innerHTML =
-        '<div class="project-list">' + items.join("") + "</div>" + loadMoreButton;
+        '<div class="project-list">' + items.join("") + loadMoreButton + "</div>";
 
       const loadMore = document.getElementById("loadMore");
       if (loadMore) {
@@ -368,6 +584,24 @@ export function getSidebarHtml(
           renderProjects();
         });
       }
+
+      const projectCards = content.querySelectorAll(".project-item[data-project-id]");
+      projectCards.forEach((card) => {
+        card.addEventListener("click", () => {
+          const projectId = card.getAttribute("data-project-id");
+          const projectName = card.getAttribute("data-project-name") || "Project Details";
+          if (!projectId) {
+            return;
+          }
+
+          selectedProjectId = projectId;
+          selectedProjectName = projectName;
+          setDetailHeader(projectName, "Loading blocks and quizzes...");
+          renderDetailState("Loading blocks and quizzes...");
+          showDetailView();
+          vscode.postMessage({ type: "selectProject", projectId, projectName });
+        });
+      });
     }
 
     function setLoggedIn(username) {
@@ -382,6 +616,10 @@ export function getSidebarHtml(
 
     searchInput.addEventListener("input", () => {
       applySearch();
+    });
+
+    backButton.addEventListener("click", () => {
+      showProjectView();
     });
 
     if (Array.isArray(initialProjects) && initialProjects.length > 0) {
@@ -414,14 +652,31 @@ export function getSidebarHtml(
       }
 
       if (msg.type === "projectsLoaded") {
-        allProjects = Array.isArray(msg.projects) ? msg.projects : [];
+        allProjects = normalizeProjects(msg.projects);
         filteredProjects = allProjects.slice();
         visibleCount = PAGE_SIZE;
+        showProjectView();
         renderProjects();
       }
 
       if (msg.type === "projectsError") {
+        showProjectView();
         renderEmpty(msg.message || "Failed to load projects.");
+      }
+
+      if (msg.type === "projectDetailsLoading" && msg.projectId === selectedProjectId) {
+        setDetailHeader(msg.projectName || selectedProjectName, msg.message || "Loading blocks and quizzes...");
+        renderDetailState(msg.message || "Loading blocks and quizzes...");
+      }
+
+      if (msg.type === "projectDetailsLoaded" && msg.projectId === selectedProjectId) {
+        setDetailHeader(msg.projectName || selectedProjectName, "Blocks loaded for this project.");
+        renderProjectDetails(msg.blocks);
+      }
+
+      if (msg.type === "projectDetailsError" && msg.projectId === selectedProjectId) {
+        setDetailHeader(msg.projectName || selectedProjectName, "Failed to load project details.");
+        renderDetailState(msg.message || "Failed to load project details.");
       }
     });
   </script>
