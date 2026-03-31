@@ -1,6 +1,7 @@
 import * as vscode from "vscode";
 import { getHtml } from "../frontend/html";
 import { loginWithUsernamePassword } from "./auth/loginFlow";
+import { url } from "inspector/promises";
 
 let currentPanel: vscode.WebviewPanel | undefined;   // 現在開著的web
 
@@ -25,9 +26,11 @@ export function openMainPanel(context: vscode.ExtensionContext) {
 
       if (msg.type === "portalLogin") {
 
-        const res = await fetch(
-          "https://pslab.squidspirit.com/api/oauth/authorize?should_exchange_code=true"
-        );
+        const url = new URL("https://pslab.squidspirit.com/api/oauth/authorize");
+        url.searchParams.set("should_exchange_code", "true");
+        url.searchParams.set("redirect_uri", "vscode://anna.localjudge-ui/auth-callback");
+
+        const res = await fetch(url.toString());
 
         console.log("STATUS:", res.status);
 
@@ -35,6 +38,7 @@ export function openMainPanel(context: vscode.ExtensionContext) {
         console.log("DATA:", data);
 
         const authUrl = data.auth_url;
+        console.log("AUTH URL:", authUrl);
 
         // const data: any = await res.json();
         // const authUrl = data.auth_url;
