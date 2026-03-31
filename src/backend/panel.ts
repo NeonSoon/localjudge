@@ -34,14 +34,24 @@ export function openMainPanel(context: vscode.ExtensionContext) {
 
         console.log("STATUS:", res.status);
 
-        const data: any = await res.json();
-        console.log("DATA:", data);
+        // const data: any = await res.json();
+        // console.log("DATA:", data);
+
+        // const text = await res.text();
+        // console.log("TEXT:", text);
+        const text = await res.text();
+        console.log("TOKEN RAW RESPONSE:", text);
+
+        let data: any = null;
+        try {
+          data = JSON.parse(text);
+          console.log("PARSED JSON:", data);
+        } catch {
+          console.log("Not JSON response");
+        }
 
         const authUrl = data.auth_url;
         console.log("AUTH URL:", authUrl);
-
-        // const data: any = await res.json();
-        // const authUrl = data.auth_url;
 
         if (!authUrl) {
           vscode.window.showErrorMessage("Failed to get auth URL");

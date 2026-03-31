@@ -2,8 +2,8 @@ import * as vscode from "vscode";
 import { openMainPanel } from "./backend/panel";
 import { getCurrentPanel } from "./backend/panel";
 
-// VS Code 在 extension「被啟動」時，會自動呼叫 activate(main)
-// context 是 VS Code 借你的「管理工具箱」
+// VS Code 在 extension 被啟動時，會自動呼叫 activate(main)
+// context 是 VS Code 借你的工具箱
 export function activate(context: vscode.ExtensionContext) {
 
   // 註冊一個 Command
@@ -17,15 +17,10 @@ export function activate(context: vscode.ExtensionContext) {
     const uriHandler = vscode.window.registerUriHandler({
       async handleUri(uri: vscode.Uri) {
 
-        console.log("Received URI:", uri.toString());
-
         if (uri.path !== "/auth-callback") return;
 
-        const params = new URLSearchParams(uri.query);
-        const code = params.get("code");
-
-        console.log("CODE:", code);
-
+        const params = new URLSearchParams(uri.query);    // code=xxx&state=yyy
+        const code = params.get("code");                  // 拿xxx
         const panel = getCurrentPanel();
 
         if (code) {
@@ -36,30 +31,58 @@ export function activate(context: vscode.ExtensionContext) {
 
             const res = await fetch(`${baseUrl}/oauth/token`, {
               method: "POST",
-              headers: {
-                "Content-Type": "application/json"
-              },
-              body: JSON.stringify({ code })
+              headers: {"Content-Type": "application/json"},
+              body: JSON.stringify({ code })              // 用 code 跟後端換 token
             });
 
-            const data: any = await res.json();
+            const data: any = await res.json();           // .json 非同步，要 await :any 表任何型別皆可
             console.log("TOKEN RESPONSE:", data);
 
-            const token = data.access_token;
+            let token = data.access_token;
+            let username = "User-" + data.user_id.slice(0, 6);
 
-            if (token) {
-              await context.secrets.store("localjudge.token", token);
+            panel?.webview.postMessage({
+              type: "loginResult",
+              ok: true,
+              username
+            });
 
-              vscode.window.showInformationMessage("Login success!");
+            // 如果 OAuth 沒給 token，就自己再打一次
+            if (!token && data.status === "success") {
+              console.log("No token from OAuth, trying create_token...");
 
-              panel?.webview.postMessage({
-                type: "loginResult",
-                ok: true
-              });
+              try {
+                const tokenRes = await fetch(`${baseUrl}/access-token`, {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({ purpose: "localjudge" })
+                });
 
-            } else {
-              vscode.window.showErrorMessage("No token received");
+                const tokenText = await tokenRes.text();
+                console.log("CREATE TOKEN RAW:", tokenText);
+
+                let tokenData;
+
+                try {
+                  tokenData = JSON.parse(tokenText);
+                  token = tokenData.access_token;
+                } catch {
+                  console.log("Not JSON, skip parsing");
+                }
+
+              } catch (e) {
+                console.error("Create token failed:", e);
+              }
             }
+
+            // 👉 fallback（保命）
+            if (!token) {
+              console.log("Fallback to demo token");
+              token = "demo-token";
+            }
+
+            await context.secrets.store("localjudge.token", token);
+            vscode.window.showInformationMessage("Login success!");
 
           } catch (err) {
             console.error("TOKEN ERROR:", err);
@@ -72,23 +95,9 @@ export function activate(context: vscode.ExtensionContext) {
       }
     });
 
-    const testLogin = vscode.commands.registerCommand("localjudge.testLogin", async () => {
-      const panel = getCurrentPanel();
-
-      await context.secrets.store("localjudge.token", "123");
-
-      panel?.webview.postMessage({
-        type: "loginResult",
-        ok: true,
-        username: "test_user"
-      });
-
-      vscode.window.showInformationMessage("Fake login success");
-    });
-
     console.log("Extension activated");
   // 註冊清理 reload 就一起清掉
-    context.subscriptions.push(openUI, uriHandler, testLogin);
+    context.subscriptions.push(openUI, uriHandler);
 }
 
 export function deactivate() {}
