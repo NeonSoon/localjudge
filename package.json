@@ -76,6 +76,10 @@
       {
         "command": "localjudge-ui.openUI",
         "title": "LocalJudge: Open UI"
+      },
+      {
+        "command": "localjudge.openFaq",
+        "title": "LocalJudge: Open FAQ"
       }
     ],
     "configuration": {
@@ -120,6 +124,11 @@
           "type": "string",
           "default": "",
           "description": "Access token (stored in settings; prefer the Login command which saves it securely)."
+        },
+        "localjudge.faqBaseUrl": {
+          "type": "string",
+          "default": "http://localhost:8002",
+          "description": "Base URL for the RAG FAQ service (e.g. http://localhost:8002)."
         }
       }
     }

@@ -1,4 +1,5 @@
 import * as vscode from "vscode";
+import { registerFaq } from "./faq/index";
 import { registerOpenUI } from "./commands/openUI";
 import { registerAuthCallback } from "./auth/uriHandler";
 import { refreshSidebarSession } from "./auth/sessionState";
@@ -42,6 +43,7 @@ export function activate(context: vscode.ExtensionContext) {
   const submission = registerCreateSubmissionCommand(context);
   const codeJudge = registerCodeJudgeCommand(context);
   const getSubmissions = registerGetSubmissionsCommand(context);
+  context.subscriptions.push(...registerFaq(context));
   context.subscriptions.push(
     localJudgeViewProvider,
     openUI,
