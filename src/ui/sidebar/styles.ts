@@ -97,6 +97,7 @@ export const sidebarStyles = `
     color: var(--muted);
     font-size: 13px;
     line-height: 1.5;
+    white-space: pre-line;
   }
 
   .section-title {

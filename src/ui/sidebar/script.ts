@@ -6,6 +6,8 @@ export function getSidebarScript(initialProjectsJson: string) {
 
     const elements = {
       loginButton: document.getElementById("login"),
+      projectIntroTitle: document.getElementById("projectIntroTitle"),
+      projectIntroText: document.getElementById("projectIntroText"),
       projectView: document.getElementById("projectView"),
       detailView: document.getElementById("detailView"),
       quizView: document.getElementById("quizView"),
@@ -36,6 +38,7 @@ export function getSidebarScript(initialProjectsJson: string) {
     const state = {
       allProjects: normalizeProjects(initialProjects),
       filteredProjects: [],
+      loggedIn: false,
       visibleCount: PAGE_SIZE,
       selectedProjectId: "",
       selectedProjectName: "",
@@ -75,6 +78,22 @@ export function getSidebarScript(initialProjectsJson: string) {
     function setProjectSummary(totalCount, summaryText) {
       elements.count.textContent = totalCount + " items";
       elements.results.textContent = summaryText;
+    }
+
+    function setProjectIntro(loggedIn, username) {
+      if (loggedIn) {
+        const displayName = username && username.includes("@")
+          ? username.slice(0, username.indexOf("@"))
+          : username;
+        elements.projectIntroTitle.textContent = "Projects Ready";
+        elements.projectIntroText.textContent = displayName
+          ? "Welcome back, " + displayName + ".\\nChoose a project below to get started."
+          : "Welcome back.\\nChoose a project below to get started.";
+        return;
+      }
+
+      elements.projectIntroTitle.textContent = "Your Projects";
+      elements.projectIntroText.textContent = "Login from the command palette or use the button here. After login, the sidebar will fetch and list your projects automatically.";
     }
 
     function renderProjectState(message, options = {}) {
@@ -573,13 +592,19 @@ export function getSidebarScript(initialProjectsJson: string) {
     }
 
     function setLoggedIn(username) {
-      elements.loginButton.textContent = username || "Logged In";
-      elements.loginButton.disabled = true;
+      state.loggedIn = true;
+      elements.loginButton.textContent = "Logout";
+      elements.loginButton.title = username ? "Logged in as " + username : "Logged in";
+      elements.loginButton.disabled = false;
+      setProjectIntro(true, username);
     }
 
     function setLoggedOut() {
+      state.loggedIn = false;
       elements.loginButton.textContent = "Login";
+      elements.loginButton.title = "";
       elements.loginButton.disabled = false;
+      setProjectIntro(false);
     }
 
     function setProjects(projects) {
@@ -737,7 +762,7 @@ export function getSidebarScript(initialProjectsJson: string) {
     }
 
     elements.loginButton.addEventListener("click", () => {
-      vscode.postMessage({ type: "login" });
+      vscode.postMessage({ type: state.loggedIn ? "logout" : "login" });
     });
 
     elements.searchInput.addEventListener("input", applySearch);

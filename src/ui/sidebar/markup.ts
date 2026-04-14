@@ -4,15 +4,15 @@ export function getSidebarBodyMarkup() {
     <div class="topbar">
       <div>
         <h1 class="title">LocalJudge</h1>
-        <p class="subtitle">Projects synced from LocalJudge API</p>
+        <p class="subtitle">Powered by ANNA</p>
       </div>
       <button id="login" class="login-btn">Login</button>
     </div>
 
     <div id="projectView" class="view">
       <section class="card">
-        <h2>Your Projects</h2>
-        <p>Login from the command palette or use the button here. After login, the sidebar will fetch and list your projects automatically.</p>
+        <h2 id="projectIntroTitle">Your Projects</h2>
+        <p id="projectIntroText">Login from the command palette or use the button here. After login, the sidebar will fetch and list your projects automatically.</p>
       </section>
 
       <section>

@@ -2,6 +2,7 @@ import type { Project } from "../project/projectStore";
 
 export type FromWebview =
   | { type: "login" }
+  | { type: "logout" }
   | { type: "selectProject"; projectId: string; projectName?: string }
   | {
       type: "selectQuiz";

@@ -30,6 +30,7 @@ export function activate(context: vscode.ExtensionContext) {
   const showToken = registerShowTokenCommand(context, output);
   const logout = registerLogoutCommand(context, () => {
     void localJudgePanel.showAuthState(false);
+    void localJudgePanel.showProjects([]);
     void localJudgePanel.showProjectsError("Not logged in. Please login to load your project list.");
   });
   const getProjects = registerGetProjectsCommand(context, (projects) => {

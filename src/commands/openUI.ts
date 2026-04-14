@@ -20,6 +20,13 @@ export function registerOpenUI(
     if (msg.type === "login") {
       panel.showProjectsLoading("Opening login page...");
       await openLoginPage(context);
+      return;
+    }
+
+    if (msg.type === "logout") {
+      panel.showProjectsLoading("Logging out...");
+      await vscode.commands.executeCommand("localjudge.logout");
+      return;
     }
 
     if (msg.type === "selectProject") {
