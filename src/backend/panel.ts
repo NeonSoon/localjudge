@@ -1,7 +1,7 @@
 import * as vscode from "vscode";
 import { getHtml } from "../frontend/html";
 import { loginWithUsernamePassword } from "./auth/loginFlow";
-import { url } from "inspector/promises";
+// import { url } from "inspector/promises";
 
 let currentPanel: vscode.WebviewPanel | undefined;   // 現在開著的web
 
@@ -34,11 +34,6 @@ export function openMainPanel(context: vscode.ExtensionContext) {
 
         console.log("STATUS:", res.status);
 
-        // const data: any = await res.json();
-        // console.log("DATA:", data);
-
-        // const text = await res.text();
-        // console.log("TEXT:", text);
         const text = await res.text();
         console.log("TOKEN RAW RESPONSE:", text);
 
@@ -51,7 +46,6 @@ export function openMainPanel(context: vscode.ExtensionContext) {
         }
 
         const authUrl = data.auth_url;
-        console.log("AUTH URL:", authUrl);
 
         if (!authUrl) {
           vscode.window.showErrorMessage("Failed to get auth URL");

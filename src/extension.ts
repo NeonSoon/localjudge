@@ -22,7 +22,7 @@ export function activate(context: vscode.ExtensionContext) {
         const params = new URLSearchParams(uri.query);    // code=xxx&state=yyy
         const code = params.get("code");                  // 拿xxx
         const panel = getCurrentPanel();
-
+        console.log("code from callback:", code);
         if (code) {
           try {
             const baseUrl = vscode.workspace
@@ -34,12 +34,30 @@ export function activate(context: vscode.ExtensionContext) {
               headers: {"Content-Type": "application/json"},
               body: JSON.stringify({ code })              // 用 code 跟後端換 token
             });
+            console.log("TOKEN STATUS:", res.headers);
 
             const data: any = await res.json();           // .json 非同步，要 await :any 表任何型別皆可
             console.log("TOKEN RESPONSE:", data);
 
-            let token = data.access_token;
-            let username = "User-" + data.user_id.slice(0, 6);
+            const cookie = res.headers.get("set-cookie");
+            console.log("SET-COOKIE:", cookie);
+
+            let token = null;
+
+            if(cookie){
+              const match = cookie.match(/access_token=([^;]+);/);
+              if(match) token = match[1];
+            }
+            console.log("Token extracted from cookie:", token);
+
+            const userRes = await fetch(`${baseUrl}/user/current-user`, {
+              method: "GET",
+              headers: { Cookie: `access_token=${token}` }
+            });
+            const text = await userRes.text();
+            console.log("Current user raw response:", text);
+            const userData = JSON.parse(text);
+            const username = userData.username;
 
             panel?.webview.postMessage({
               type: "loginResult",
@@ -75,7 +93,7 @@ export function activate(context: vscode.ExtensionContext) {
               }
             }
 
-            // 👉 fallback（保命）
+            // fallback（保命）
             if (!token) {
               console.log("Fallback to demo token");
               token = "demo-token";
