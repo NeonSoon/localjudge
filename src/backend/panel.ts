@@ -24,12 +24,35 @@ export function openMainPanel(context: vscode.ExtensionContext) {
     try {
 
       if (msg.type === "portalLogin") {
+        
+        const url = new URL("https://pslab.squidspirit.com/api/oauth/authorize");
+        url.searchParams.set("should_exchange_code", "true");
+        url.searchParams.set("redirect_uri", "vscode://anna.localjudge-ui/auth-callback");
 
-        // 用系統預設瀏覽器打開網址
-        const portalUrl = "https://portal.ncu.edu.tw/oauth2/authorization";
-        await vscode.env.openExternal(vscode.Uri.parse(portalUrl));
+        const res = await fetch(url.toString());
 
-        return;
+        console.log("STATUS:", res.status);
+
+        const text = await res.text();
+        console.log("TOKEN RAW RESPONSE:", text);
+
+        let data: any = null;
+        try {
+          data = JSON.parse(text);
+          console.log("PARSED JSON:", data);
+        } catch {
+          console.log("Not JSON response");
+        }
+
+        const authUrl = data.auth_url;
+
+        if (!authUrl) {
+          vscode.window.showErrorMessage("Failed to get auth URL");
+          return;
+        }
+
+        await vscode.env.openExternal(vscode.Uri.parse(authUrl));
+
       }
       if (msg.type === "manualLogin") {
 

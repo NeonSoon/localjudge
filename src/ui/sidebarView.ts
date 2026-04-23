@@ -10,7 +10,6 @@ export function getSidebarHtml(
   projects: Project[] = []
 ) {
   const initialProjects = escapeJsonForHtml(projects);
-
   return `<!doctype html>
 <html lang="en">
 <head>
@@ -22,10 +21,10 @@ ${sidebarStyles}
 </head>
 <body>
 ${getSidebarBodyMarkup()}
-
   <script>
 ${getSidebarScript(initialProjects)}
   </script>
 </body>
 </html>`;
+
 }

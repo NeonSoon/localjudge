@@ -1,5 +1,6 @@
 {
-  "name": "localjudge",
+  "name": "localjudge-ui",
+  "publisher": "anna",
   "displayName": "localjudge",
   "description": "",
   "version": "0.0.1",
