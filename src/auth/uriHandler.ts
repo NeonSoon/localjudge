@@ -49,6 +49,8 @@ export function registerAuthCallback(
 
         console.log("COOKIE:", cookie);
         console.log("TOKEN:", token);
+        console.log("HEADERS:", res.headers);
+        console.log("RAW:", (res.headers as any).raw?.());
 
         if (!token) {
           vscode.window.showErrorMessage("Failed to extract token from cookie.");
