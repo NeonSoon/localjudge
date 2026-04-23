@@ -27,6 +27,7 @@ export function getSidebarScript(initialProjectsJson: string) {
       quizStatus: document.getElementById("quizStatus"),
       quizContent: document.getElementById("quizContent"),
     };
+    console.log("loginButton:", elements.loginButton);
 
     function normalizeProjects(projects) {
       return (Array.isArray(projects) ? projects : []).map((project) => ({
@@ -762,6 +763,7 @@ export function getSidebarScript(initialProjectsJson: string) {
     }
 
     elements.loginButton.addEventListener("click", () => {
+      console.log("Login button clicked. Current loggedIn state:", state.loggedIn);
       vscode.postMessage({ type: state.loggedIn ? "logout" : "login" });
     });
 
@@ -797,6 +799,34 @@ export function getSidebarScript(initialProjectsJson: string) {
 
     window.addEventListener("message", (event) => {
       handleMessage(event.data);
+    });
+
+    window.addEventListener("message", (event) => {
+      const msg = event.data;
+      handleMessage(msg);
+
+      // 顯示 loginPage
+      if (msg.type === "showLoginPage") {
+        const loginView = document.getElementById("loginView");
+        const mainView = document.getElementById("mainView");
+
+        if (!loginView) {
+          console.error("loginView not found");
+          return;
+        }
+
+        loginView.removeAttribute("hidden");   // 顯示 login
+        mainView?.setAttribute("hidden", "true"); // 隱藏主畫面
+      }
+
+      // 登入成功後切回主畫面
+      if (msg.type === "loginSuccess") {
+        const loginView = document.getElementById("loginView");
+        const mainView = document.getElementById("mainView");
+
+        loginView?.setAttribute("hidden", "true");
+        mainView?.removeAttribute("hidden");
+      }
     });
 `;
 }

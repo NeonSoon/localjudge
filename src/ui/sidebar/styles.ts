@@ -445,4 +445,37 @@ export const sidebarStyles = `
     border-color: rgba(79, 195, 247, 0.22);
     background: linear-gradient(180deg, rgba(79, 195, 247, 0.08), rgba(79, 195, 247, 0.02));
   }
+
+  .login-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 24px;
+  }
+
+  .login-container .card {
+    width: 100%;
+    max-width: 320px;
+    background: rgba(255,255,255,0.05);
+    border-radius: 12px;
+    padding: 20px;
+    backdrop-filter: blur(10px);
+  }
+
+  .login-container input {
+    width: 100%;
+    margin-bottom: 10px;
+    padding: 8px;
+    border-radius: 6px;
+    border: 1px solid #555;
+    background: #222;
+    color: #fff;
+  }
+
+  .login-container button {
+    width: 100%;
+    margin-top: 8px;
+  }
+
+
 `;

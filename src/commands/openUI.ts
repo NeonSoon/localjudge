@@ -35,9 +35,10 @@ export function registerOpenUI(
 ) {
   panel.setMessageHandler(async (msg: FromWebview) => {
     if (msg.type === "login") {
-      panel.showProjectsLoading("Opening login page...");
-      await openLoginPage(context);
-      return;
+      // panel.showProjectsLoading("Opening login page...");
+      // await openLoginPage(context);
+      // return;
+      panel.postMessage({ type: "showLoginPage", ok: true });
     }
 
     if (msg.type === "logout") {

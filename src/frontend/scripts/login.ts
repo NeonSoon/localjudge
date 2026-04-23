@@ -1,7 +1,6 @@
 export const loginScript = `
 
     document.getElementById("manualLoginBtn")
-    
     ?.addEventListener("click", () => {
 
         const username = document.getElementById("username").value;

@@ -7,7 +7,7 @@ import { Logo } from "../components/logo";
 export function loginPage(iconUri: string) {
 
     return `
-        <div id="loginView" class="hidden">
+        <div id="loginView" class="view login-container" hidden>
             ${Card(`
 
                 ${Logo(iconUri)}

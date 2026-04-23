@@ -4,6 +4,7 @@ import { getSidebarBodyMarkup } from "./sidebar/markup";
 import { escapeJsonForHtml } from "./sidebar/serialization";
 import { getSidebarScript } from "./sidebar/script";
 import { sidebarStyles } from "./sidebar/styles";
+import { loginPage } from "../frontend/pages/loginPage";
 
 export function getSidebarHtml(
   _webview: vscode.Webview,
@@ -20,11 +21,15 @@ ${sidebarStyles}
   </style>
 </head>
 <body>
+<div id="mainView" class="view">
 ${getSidebarBodyMarkup()}
+</div>
+
+${loginPage("")}
+
   <script>
 ${getSidebarScript(initialProjects)}
   </script>
 </body>
 </html>`;
-
 }
