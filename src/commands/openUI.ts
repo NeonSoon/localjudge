@@ -6,10 +6,27 @@ import { LocalJudgePanel } from "../ui/panel";
 import type { FromWebview } from "../ui/messages";
 
 export async function openLoginPage(context: vscode.ExtensionContext) {
-  const extID = context.extension.id;
-  const callbackUri = `vscode://${extID}/auth-callback`;
-  const loginUrl = `https://pslab.squidspirit.com/sign-in?redirect=${encodeURIComponent(callbackUri)}`;
-  await vscode.env.openExternal(vscode.Uri.parse(loginUrl));
+  const extId = context.extension.id;
+  const callbackUri = `vscode://${extId}/auth-callback`;
+
+  const url = new URL("https://pslab.squidspirit.com/api/oauth/authorize");
+
+  url.searchParams.set("should_exchange_code", "true");
+  url.searchParams.set("redirect_uri", callbackUri);
+
+  const res = await fetch(url.toString());
+  const data = await res.json();
+
+  console.log("AUTH RESPONSE:", data);
+
+  const authUrl = data.auth_url;
+
+  if (!authUrl) {
+    vscode.window.showErrorMessage("Failed to get auth URL");
+    return;
+  }
+
+  await vscode.env.openExternal(vscode.Uri.parse(authUrl));
 }
 
 export function registerOpenUI(

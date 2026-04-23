@@ -27,7 +27,7 @@ export function activate(context: vscode.ExtensionContext) {
   const login = registerLoginCommand(context, (username) => {
     void localJudgePanel.showAuthState(true, username);
   });
-  const uriHandler = registerAuthCallback(context, () => LocalJudgePanel.current);
+  const uriHandler = registerAuthCallback(context, () => localJudgePanel);
   const showToken = registerShowTokenCommand(context, output);
   const logout = registerLogoutCommand(context, () => {
     void localJudgePanel.showAuthState(false);
