@@ -65,34 +65,6 @@ export function activate(context: vscode.ExtensionContext) {
               username
             });
 
-            // 如果 OAuth 沒給 token，就自己再打一次
-            if (!token && data.status === "success") {
-              console.log("No token from OAuth, trying create_token...");
-
-              try {
-                const tokenRes = await fetch(`${baseUrl}/access-token`, {
-                  method: "POST",
-                  headers: { "Content-Type": "application/json" },
-                  body: JSON.stringify({ purpose: "localjudge" })
-                });
-
-                const tokenText = await tokenRes.text();
-                console.log("CREATE TOKEN RAW:", tokenText);
-
-                let tokenData;
-
-                try {
-                  tokenData = JSON.parse(tokenText);
-                  token = tokenData.access_token;
-                } catch {
-                  console.log("Not JSON, skip parsing");
-                }
-
-              } catch (e) {
-                console.error("Create token failed:", e);
-              }
-            }
-
             // fallback（保命）
             if (!token) {
               console.log("Fallback to demo token");
