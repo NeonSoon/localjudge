@@ -4,6 +4,9 @@ import { fetchProjectDetails } from "../project/loadProjectDetails";
 import { runCodeJudgeForQuiz } from "../submission/codejudge";
 import { LocalJudgePanel } from "../ui/panel";
 import type { FromWebview } from "../ui/messages";
+import { loginWithUsernamePassword } from "../auth/loginFlow";
+import { fetchProjects } from "../project/getProjects";
+import { setAuth } from "../auth/tokenStore";
 
 export async function openLoginPage(context: vscode.ExtensionContext) {
   const extId = context.extension.id;
@@ -35,10 +38,63 @@ export function registerOpenUI(
 ) {
   panel.setMessageHandler(async (msg: FromWebview) => {
     if (msg.type === "login") {
-      // panel.showProjectsLoading("Opening login page...");
-      // await openLoginPage(context);
-      // return;
       panel.postMessage({ type: "showLoginPage", ok: true });
+    }
+
+    if (msg.type === "portalLogin") {
+      await openLoginPage(context);
+      return;
+    }
+
+    if (msg.type === "manualLogin") {
+      try {
+        const result = await loginWithUsernamePassword({
+          context,
+          baseUrl: "https://pslab.squidspirit.com",
+          username: msg.username,
+          password: msg.password,
+          purpose: "localjudge"
+        });
+
+        // 存 token
+        await setAuth(context, {
+          token: result.token,
+          tokenId: result.tokenId
+        });
+        // 更新登入狀態
+        panel.postMessage({
+          type: "authState",
+          loggedIn: true,
+          username: result.user.username
+        });
+
+        // 關 loginPage
+        panel.postMessage({
+          type: "loginSuccess",
+          username: result.user.username
+        });
+
+        // 重新載入 projects
+        panel.postMessage({
+          type: "projectsLoading",
+          message: "Loading projects..."
+        });
+
+        const projects = await fetchProjects(context, { showNotification: false });
+
+        panel.postMessage({
+          type: "projectsLoaded",
+          projects
+        });
+      }
+        catch (err: any) {
+          console.error("LOGIN ERROR:", err);
+
+          panel.postMessage({
+            type: "loginFailed",
+            message: err?.message ?? "Username/password incorrect."
+          });
+        }
     }
 
     if (msg.type === "logout") {

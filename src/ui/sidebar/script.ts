@@ -821,12 +821,55 @@ export function getSidebarScript(initialProjectsJson: string) {
 
       // 登入成功後切回主畫面
       if (msg.type === "loginSuccess") {
+        console.log("登入成功");
         const loginView = document.getElementById("loginView");
         const mainView = document.getElementById("mainView");
 
         loginView?.setAttribute("hidden", "true");
         mainView?.removeAttribute("hidden");
+
+        // 關 loginPage
+        document.getElementById("loginView")?.setAttribute("hidden", "true");
+
+        // 顯示主畫面
+        document.getElementById("mainView")?.removeAttribute("hidden");
       }
+
+      if (msg.type === "loginFailed") {
+        console.log("登入失敗");
+
+        const errorEl = document.getElementById("loginError");
+
+        if (errorEl) {
+          errorEl.textContent = msg.message || "Login failed";
+          errorEl.style.display = "block";
+        }
+      }
+      
+    });
+    
+    // 手動登入
+    document.getElementById("manualLoginBtn")?.addEventListener("click", () => {
+      const username = document.getElementById("username")?.value;
+      const password = document.getElementById("password")?.value;
+
+      if (!username || !password) {
+        console.log("缺少帳密");
+        return;
+      }
+
+      vscode.postMessage({
+        type: "manualLogin",
+        username,
+        password
+      });
+    });
+
+    // Portal 登入
+    document.getElementById("portalLoginBtn")?.addEventListener("click", () => {
+      vscode.postMessage({
+        type: "portalLogin"
+      });
     });
 `;
 }

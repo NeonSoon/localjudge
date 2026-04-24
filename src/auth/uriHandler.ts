@@ -87,7 +87,7 @@ export function registerAuthCallback(
     });
 
     panel?.postMessage({
-      type: "loginResult",
+      type: "loginSuccess",
       ok: true,
     });
 
