@@ -449,7 +449,10 @@ export const sidebarStyles = `
   #loginView {
     position: fixed;
     inset: 0;
-    
+    padding: 20px;
+    background:
+      radial-gradient(circle at top, rgba(79, 195, 247, 0.08), transparent 38%),
+      rgba(24, 24, 24, 0.92);
     z-index: 100;
   }
 
@@ -459,77 +462,168 @@ export const sidebarStyles = `
     align-items: center;
   }
 
-  /* 登入卡片 */
-  .card {
+  #loginView .card {
     width: 100%;
-    max-width: 520px;
-    padding: 28px;
-    border-radius: 16px;
-    border: 1px solid rgba(255,255,255,0.12);
-    background: rgba(17,17,17,0.95);
-    box-sizing: border-box;
-    display: flex;
-    flex-direction: column;
+    max-width: 420px;
+    padding: 0;
+    border-radius: 20px;
+    border: 1px solid rgba(79, 195, 247, 0.18);
+    background: linear-gradient(180deg, rgba(79, 195, 247, 0.12), rgba(79, 195, 247, 0.03));
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.04),
+      0 18px 40px rgba(0, 0, 0, 0.32);
+  }
+
+  .login-card-shell {
+    display: grid;
     gap: 16px;
+    padding: 22px;
   }
 
-  /* input */
-  input {
-    padding: 12px;
-    border-radius: 999px;
-    border: none;
-    font-size: 16px;
+  .login-back-btn {
+    width: fit-content;
+    min-height: 34px;
+    padding: 0 12px;
+    border-radius: 10px;
+    border: 1px solid var(--border);
+    background: rgba(32, 32, 32, 0.9);
+    color: var(--text);
+    font-size: 12px;
+    font-weight: 700;
+    cursor: pointer;
+    transition:
+      border-color 0.15s ease,
+      background 0.15s ease,
+      transform 0.15s ease;
   }
 
-  /* 按鈕都是整條的 */
+  .login-back-btn:hover {
+    border-color: rgba(79, 195, 247, 0.35);
+    background: rgba(40, 40, 40, 0.98);
+    transform: translateY(-1px);
+  }
+
+  .login-eyebrow {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--accent);
+  }
+
+  .login-title {
+    margin: 0;
+    font-size: 24px;
+    line-height: 1.15;
+    letter-spacing: -0.02em;
+  }
+
+  .login-copy {
+    margin: -6px 0 0;
+    color: var(--muted);
+    font-size: 13px;
+    line-height: 1.6;
+  }
+
+  .login-form {
+    display: grid;
+    gap: 12px;
+  }
+
+  .login-field {
+    display: grid;
+    gap: 6px;
+  }
+
+  .login-field span {
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--muted);
+    letter-spacing: 0.03em;
+  }
+
+  #loginView input {
+    width: 100%;
+    min-height: 42px;
+    padding: 0 12px;
+    border-radius: 12px;
+    border: 1px solid var(--border);
+    background: rgba(32, 32, 32, 0.96);
+    color: var(--text);
+    font-size: 13px;
+    outline: none;
+  }
+
+  #loginView input::placeholder {
+    color: var(--muted);
+  }
+
+  #loginView input:focus {
+    border-color: rgba(79, 195, 247, 0.45);
+    box-shadow: 0 0 0 3px rgba(79, 195, 247, 0.12);
+  }
+
+  .login-error {
+    padding: 10px 12px;
+    border-radius: 12px;
+    border: 1px solid rgba(255, 107, 107, 0.24);
+    background: rgba(255, 107, 107, 0.08);
+    color: #ff9a9a;
+    font-size: 12px;
+    line-height: 1.5;
+  }
+
+  .login-error[hidden] {
+    display: none;
+  }
+
+  .login-actions {
+    display: grid;
+    gap: 12px;
+  }
+
   .fullBtn {
     width: 100%;
-    padding: 14px 0;
+    min-height: 42px;
+    padding: 0 14px;
     border-radius: 12px;
-    border: none;
+    border: 1px solid transparent;
     cursor: pointer;
-    transition: 0.15s ease;
+    transition:
+      border-color 0.15s ease,
+      background 0.15s ease,
+      transform 0.15s ease;
+    font-size: 13px;
+    font-weight: 700;
   }
 
-  .homefullBtn {
-    width: 240px;
-    padding: 14px 0;
-    border-radius: 12px;
-    border: none;
-    cursor: pointer;
-    transition: 0.15s ease;
+  .fullBtn:hover {
+    transform: translateY(-1px);
   }
 
-  /* 首頁按鈕 */
-  .homeLoginBtn {
-    padding: 12px;
-    border-radius: 999px;
-    width: 480px;
-    font-size: 16px;
-  }
-  .homeLoginBtn:hover { background: #c5c3c3; }
-      
-  /* 按鈕 */
   .manualBtn {
-    padding: 12px;
-    border-radius: 999px;
-    font-size: 16px;
+    background: var(--button);
+    color: var(--button-text);
   }
-  .manualBtn:hover { background: #a9a7a7; }
+
+  .manualBtn:hover {
+    background: #dedede;
+  }
 
   .portalBtn { 
-    background: #7da2d6; 
-    color: white;
-    font-size: 16px;
+    background: rgba(79, 195, 247, 0.14);
+    border-color: rgba(79, 195, 247, 0.22);
+    color: var(--text);
   }
-  .portalBtn:hover { background: #718fcb; }
 
-  .divider { text-align: center; }
+  .portalBtn:hover {
+    background: rgba(79, 195, 247, 0.22);
+  }
 
-  .logo{
-    display: flex;
-    justify-content: center;
-    margin-bottom: 10px;
+  .divider {
+    text-align: center;
+    color: var(--muted);
+    font-size: 12px;
   }
 
   /* dashboard */

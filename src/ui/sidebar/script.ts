@@ -81,6 +81,23 @@ export function getSidebarScript(initialProjectsJson: string) {
       elements.results.textContent = summaryText;
     }
 
+    function clearLoginForm() {
+      const usernameInput = document.getElementById("username");
+      const passwordInput = document.getElementById("password");
+      const errorEl = document.getElementById("loginError");
+
+      if (usernameInput) {
+        usernameInput.value = "";
+      }
+      if (passwordInput) {
+        passwordInput.value = "";
+      }
+      if (errorEl) {
+        errorEl.textContent = "";
+        errorEl.setAttribute("hidden", "true");
+      }
+    }
+
     function setProjectIntro(loggedIn, username) {
       if (loggedIn) {
         const displayName = username && username.includes("@")
@@ -605,6 +622,7 @@ export function getSidebarScript(initialProjectsJson: string) {
       elements.loginButton.textContent = "Login";
       elements.loginButton.title = "";
       elements.loginButton.disabled = false;
+      clearLoginForm();
       setProjectIntro(false);
     }
 
@@ -809,10 +827,16 @@ export function getSidebarScript(initialProjectsJson: string) {
       if (msg.type === "showLoginPage") {
         const loginView = document.getElementById("loginView");
         const mainView = document.getElementById("mainView");
+        const errorEl = document.getElementById("loginError");
 
         if (!loginView) {
           console.error("loginView not found");
           return;
+        }
+
+        if (errorEl) {
+          errorEl.textContent = "";
+          errorEl.setAttribute("hidden", "true");
         }
 
         loginView.removeAttribute("hidden");   // 顯示 login
@@ -824,6 +848,12 @@ export function getSidebarScript(initialProjectsJson: string) {
         console.log("登入成功");
         const loginView = document.getElementById("loginView");
         const mainView = document.getElementById("mainView");
+        const errorEl = document.getElementById("loginError");
+
+        if (errorEl) {
+          errorEl.textContent = "";
+          errorEl.setAttribute("hidden", "true");
+        }
 
         loginView?.setAttribute("hidden", "true");
         mainView?.removeAttribute("hidden");
@@ -842,7 +872,7 @@ export function getSidebarScript(initialProjectsJson: string) {
 
         if (errorEl) {
           errorEl.textContent = msg.message || "Login failed";
-          errorEl.style.display = "block";
+          errorEl.removeAttribute("hidden");
         }
       }
       
@@ -870,6 +900,12 @@ export function getSidebarScript(initialProjectsJson: string) {
       vscode.postMessage({
         type: "portalLogin"
       });
+    });
+
+    document.getElementById("loginBackBtn")?.addEventListener("click", () => {
+      document.getElementById("loginError")?.setAttribute("hidden", "true");
+      document.getElementById("loginView")?.setAttribute("hidden", "true");
+      document.getElementById("mainView")?.removeAttribute("hidden");
     });
 `;
 }
